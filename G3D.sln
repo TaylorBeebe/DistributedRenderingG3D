@@ -336,11 +336,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maxPerf", "maxPerf.vcxproj"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite3.lib", "sqlite3.lib.vcxproj", "{F17ED136-2D72-46E0-9589-FC4F1492947F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClientSide", "DistributedRenderingG3D\ClientSide\ClientSide.vcxproj", "{E5F4234F-49BC-436E-852F-DD5B8BE9AC5E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClientSide", "ClientSide.vcxproj", "{E5F4234F-49BC-436E-852F-DD5B8BE9AC5E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerSide", "DistributedRenderingG3D\ServerSide\ServerSide.vcxproj", "{39624ACE-1629-49CD-8D59-6013408EFB1E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderNodes", "RenderNodes.vcxproj", "{5D9D345A-97D2-453C-B67E-40C327E687E8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderNodes", "DistributedRenderingG3D\RenderNodes\RenderNodes.vcxproj", "{5D9D345A-97D2-453C-B67E-40C327E687E8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerSide", "ServerSide.vcxproj", "{39624ACE-1629-49CD-8D59-6013408EFB1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -696,14 +696,6 @@ Global
 		{E5F4234F-49BC-436E-852F-DD5B8BE9AC5E}.Release|x64.Build.0 = Release|x64
 		{E5F4234F-49BC-436E-852F-DD5B8BE9AC5E}.Release|x86.ActiveCfg = Release|Win32
 		{E5F4234F-49BC-436E-852F-DD5B8BE9AC5E}.Release|x86.Build.0 = Release|Win32
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x64.ActiveCfg = Debug|x64
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x64.Build.0 = Debug|x64
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x86.ActiveCfg = Debug|Win32
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x86.Build.0 = Debug|Win32
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x64.ActiveCfg = Release|x64
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x64.Build.0 = Release|x64
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x86.ActiveCfg = Release|Win32
-		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x86.Build.0 = Release|Win32
 		{5D9D345A-97D2-453C-B67E-40C327E687E8}.Debug|x64.ActiveCfg = Debug|x64
 		{5D9D345A-97D2-453C-B67E-40C327E687E8}.Debug|x64.Build.0 = Debug|x64
 		{5D9D345A-97D2-453C-B67E-40C327E687E8}.Debug|x86.ActiveCfg = Debug|Win32
@@ -712,6 +704,14 @@ Global
 		{5D9D345A-97D2-453C-B67E-40C327E687E8}.Release|x64.Build.0 = Release|x64
 		{5D9D345A-97D2-453C-B67E-40C327E687E8}.Release|x86.ActiveCfg = Release|Win32
 		{5D9D345A-97D2-453C-B67E-40C327E687E8}.Release|x86.Build.0 = Release|Win32
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x64.ActiveCfg = Debug|x64
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x64.Build.0 = Debug|x64
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x86.ActiveCfg = Debug|Win32
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Debug|x86.Build.0 = Debug|Win32
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x64.ActiveCfg = Release|x64
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x64.Build.0 = Release|x64
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x86.ActiveCfg = Release|Win32
+		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
