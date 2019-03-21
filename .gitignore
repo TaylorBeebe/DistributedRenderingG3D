@@ -42,3 +42,4 @@ vr*
 zip.*
 zlib.*
 .vs*
+shared/
