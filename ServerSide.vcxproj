@@ -115,6 +115,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DistRenderSource\server.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DistRenderSource\server.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
