@@ -43,5 +43,3 @@ zip.*
 zlib.*
 .vs*
 shared/
-
-.DS_Store
