@@ -1,3 +1,4 @@
+#pragma once
 #include "RemoteRenderer.h"
 #include <map>
 
