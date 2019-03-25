@@ -18,6 +18,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DistRenderSource\Server.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DistRenderSource\Server.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{39624ACE-1629-49CD-8D59-6013408EFB1E}</ProjectGuid>
@@ -114,12 +120,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="DistRenderSource\server.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="DistRenderSource\server.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

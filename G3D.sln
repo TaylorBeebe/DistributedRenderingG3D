@@ -342,6 +342,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderNodes", "RenderNodes.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerSide", "ServerSide.vcxproj", "{39624ACE-1629-49CD-8D59-6013408EFB1E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simpleGameDistributed", "simpleGameDistributed.vcxproj", "{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -712,6 +714,14 @@ Global
 		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x64.Build.0 = Release|x64
 		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x86.ActiveCfg = Release|Win32
 		{39624ACE-1629-49CD-8D59-6013408EFB1E}.Release|x86.Build.0 = Release|Win32
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Debug|x64.ActiveCfg = Debug|x64
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Debug|x64.Build.0 = Debug|x64
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Debug|x86.ActiveCfg = Debug|Win32
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Debug|x86.Build.0 = Debug|Win32
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Release|x64.ActiveCfg = Release|x64
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Release|x64.Build.0 = Release|x64
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Release|x86.ActiveCfg = Release|Win32
+		{BF9DC590-450C-41BB-8EDF-097AA3BA1EA4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
