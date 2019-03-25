@@ -43,5 +43,7 @@ zip.*
 zlib.*
 .vs*
 shared/
+x64/
+log.txt
 
 .DS_Store

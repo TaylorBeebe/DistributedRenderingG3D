@@ -1,6 +1,7 @@
 #pragma once
 #include "RemoteRenderer.h"
 #include <map>
+#include <G3D/G3D.h>
 
 using namespace std;
 using namespace RemoteRenderer;

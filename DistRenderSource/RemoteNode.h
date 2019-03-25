@@ -1,4 +1,5 @@
 #include "RemoteRenderer.h"
+#include <G3D/G3D.h>
 
 using namespace RemoteRenderer;
 
