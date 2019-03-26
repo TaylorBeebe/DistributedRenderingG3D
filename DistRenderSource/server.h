@@ -10,12 +10,12 @@
   Connects G3D to codeheart.js.*/
 class App : public GApp {
 protected:
-	bool                    m_showWireframe;
+	bool m_showWireframe;
 
-	shared_ptr<WebServer>   m_webServer;
+	shared_ptr<WebServer> m_webServer;
 
-	shared_ptr<GFont>       m_font;
-	String                  m_addressString;
+	shared_ptr<GFont> m_font;
+	String m_addressString;
 
 	/** The image sent across the network */
 	shared_ptr<Framebuffer> m_finalFramebuffer;

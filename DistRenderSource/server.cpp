@@ -1,4 +1,4 @@
-/** \file App.cpp
+/** \file Server.cpp
 
 */
 #include "Server.h"
@@ -9,13 +9,13 @@
 G3D_START_AT_MAIN();
 
 /** Events coming in from the remote machine */
-static ThreadsafeQueue<GEvent>      remoteEventQueue;
+static ThreadsafeQueue<GEvent> remoteEventQueue;
 
 /** Set to 1 when the client requests a full-screen image and back to 0 after the frame is sent. */
-static std::atomic_int              clientWantsImage(0);
+static std::atomic_int clientWantsImage(0);
 
 /** Socket URI used to link the connections*/
-static const String                 socketUri = "/websocket";
+static const String socketUri = "/websocket";
 
 int main(int argc, const char* argv[]) {
 	initGLG3D();
@@ -43,7 +43,6 @@ void App::onInit() {
 
 	// May be using a web browser on the same machine in the foreground
 	setLowerFrameRateInBackground(false);
-	//30fps
 	setFrameDuration(1.0f / 30);
 
 	makeGUI();
