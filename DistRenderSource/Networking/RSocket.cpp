@@ -1,4 +1,4 @@
-#include "Sockets.h"
+#include "RSocket.h"
 
 using namespace std;
 using namespace RemoteRenderer;
@@ -6,19 +6,19 @@ using namespace RemoteRenderer;
 namespace RemoteRenderer{
 
 
-    bool SingleSocket::onConnect() {
+    bool RSocket::onConnect() {
         return true;
     }
 
 
-    void SingleSocket::onReady() {
+    void RSocket::onReady() {
         // Handshake with a new client
         // send("{\"type\": 0, \"value\":\"server ready\"");
         // clientWantsImage = 1;
     }
 
 
-    bool SingleSocket::onData(Opcode opcode, char* data, size_t data_len) {
+    bool RSocket::onData(Opcode opcode, char* data, size_t data_len) {
 
         // Program currently ignores anything not BINARY
         if (opcode != BINARY) return true;
@@ -54,7 +54,7 @@ namespace RemoteRenderer{
                 break;
         }
 
-        node->onData(packet);
+        node->onData(socket_id, packet);
 
         return true;
     }

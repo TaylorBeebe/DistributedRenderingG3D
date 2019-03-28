@@ -7,15 +7,15 @@ namespace RemoteRenderer{
 
 // @pre: incoming data packet
 // @post: saves the frame and renders it on the dealine (hopefully)
-void Client::onData(RenderPacket* packet){
+void Client::onData(uint socket_id, RenderPacket* packet){
 
     switch(packet.getPacketType()){
-        case TRANSFORM: 
-            // Client has no need for transform packets
-            break;
         case FRAME:
             // TODO: what will the client do when it receives a frame
-            break;       
+            break;    
+        default:
+            debugPrintf("Client received incompatible packet type\n");
+            break;   
     }
 }
 
@@ -49,7 +49,7 @@ void Client::renderOnNetwork(){
     send(batch);
 
     // clear recently used
-    // changed_entities.erase();
+    changed_entities.erase();
 }
 
 
