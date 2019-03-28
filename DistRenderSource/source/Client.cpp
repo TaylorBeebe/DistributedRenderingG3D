@@ -5,6 +5,20 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
+// @pre: incoming data packet
+// @post: saves the frame and renders it on the dealine (hopefully)
+void Client::onData(RenderPacket* packet){
+
+    switch(packet.getPacketType()){
+        case TRANSFORM: 
+            // Client has no need for transform packets
+            break;
+        case FRAME:
+            // TODO: what will the client do when it receives a frame
+            break;       
+    }
+}
+
 // @pre: registered ID of an entity
 // @post: marks that entity as changed
 void Client::setEntityChanged(unsigned int id){
@@ -20,10 +34,7 @@ void Client::renderOnNetwork(){
     ms_to_deadline = 1000 / FRAMERATE;
 
     // initialize batch
-    BinaryOutput* batch = new G3D::BinaryOutput();
-    batch->setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
-
-    batch->beginBits();
+    TransformPacket* batch = new TransformPacket(current_job_id);
 
     // this currently loops through every entity
     // this is inefficient and should be improved such that we only iterate through a 
@@ -31,14 +42,8 @@ void Client::renderOnNetwork(){
     for (map<unsigned int, Entity*>::iterator it = entityRegistry.begin(); it!=entityRegistry.end(); ++it){
         Enitity* ent = it->second;
 
-        float x,y,z,y,p,r;
-        ent->entity->frame->getXYZYPRRadians(x,y,z,y,p,r)
-
-        // add x,y,z,y,p,r to batch
-        
+        batch->addTransform(it->first, ent->frame);
     }
-
-    batch->endBits();
 
     // net message send batch to server ip
     send(batch);

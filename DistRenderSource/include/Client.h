@@ -16,8 +16,10 @@ namespace RemoteRenderer{
 
 	    public:
 			Client() : Node::SingleConnectionNode() {};
+			
 	        virtual void setEntityChanged(unsigned int id);
 	        virtual void renderOnNetwork();
-	        void onData(G3D::BinaryInput& bitstream) override;
+
+	        void onData(RenderPacket* packet) override;
 	}
 }
