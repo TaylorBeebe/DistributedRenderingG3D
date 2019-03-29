@@ -15,7 +15,7 @@ namespace RemoteRenderer{
             set<unsigned int> changed_entities;
 
         public:
-            Client() : Node::SingleConnectionNode() {};
+            Client() : Node::SingleConnectionNode(CLIENT) {};
             
             virtual void setEntityChanged(unsigned int id);
             virtual void renderOnNetwork();

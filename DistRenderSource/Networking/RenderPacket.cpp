@@ -4,6 +4,28 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
+    //////////////////////////////////////////////
+    //                RAW PACKETS
+    //////////////////////////////////////////////
+
+    G3D::BinaryOutput* RawPacket::toBinary(){
+
+        G3D::BinaryOutput newstream = new G3D::BinaryOutput();
+        newstream.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
+
+        newstream.beginBits();
+
+        long length = bitstream->getLength();
+        // sketchy, still wondering about input datatype
+        newstream.writeBits(bitstream->readBits(length), length);
+
+        newstream.endBits();
+
+        if(compressed) newstream.compress();
+
+        return &newstream;
+    }
+
 
     //////////////////////////////////////////////
     //             TRANSFORM PACKETS
@@ -11,8 +33,14 @@ namespace RemoteRenderer{
 
     TransformPacket::TransformPacket(uint batch_id) : RenderPacket(TRANSFORM, batch_id) {}
 
+    TransformPacket::TransformPacket(RawPacket* raw_packet) {
+        if(raw_packet->getPacketType() == TRANSFORM) TransformPacket(raw_packet->getBatchId(), raw_packet->getBitStream());
+        else TransformPacket(raw_packet->getBatchId()); // return empty packet, probably should print something here
+    }
+
     TransformPacket::TransformPacket(uint batch_id, G3D::BinaryInput* bitstream) : RenderPacket(TRANSFORM, batch_id) {
 
+        bitstream->reset();
         bitstream->beginBits();
 
         // skip batch and type 
@@ -63,7 +91,7 @@ namespace RemoteRenderer{
         bitstream.endBits();
         // compress bits ? 
 
-        return bitstream;
+        return &bitstream;
     }
 
     void TransformPacket::addTransform(uint id, G3D::CFrame* frame){
@@ -92,29 +120,42 @@ namespace RemoteRenderer{
     //               FRAME PACKETS
     //////////////////////////////////////////////
 
+    FramePacket::FramePacket(uint batch_id) : FramePacket(batch_id, SCREEN_WIDTH, SCREEN_HEIGHT) {}
+
     FramePacket::FramePacket(uint batch_id, uint w, uint h) : RenderPacket(FRAME, batch_id), width(w), height(h) {}
+
+    FramePacket::FramePacket(RawPacket* raw_packet) {
+        if(raw_packet->getPacketType() == FRAME) FramePacket(raw_packet->getBatchId(), raw_packet->getBitStream());
+        else FramePacket(raw_packet->getBatchId()); // return empty packet, probably should print something here
+    }
 
     FramePacket::FramePacket(uint batch_id, G3D::BinaryInput* bitstream) : RenderPacket(FRAME, batch_id){
         // TODO: Impl
+        bitstream->reset();
+        bitstream->beginBits();
+
+        bitstream->endBits();
     }
 
     G3D::BinaryOutput* FramePacket::toBinary(){
         // TODO: Impl
 
-        G3D::BinaryOutput stream = new G3D::BinaryOutput();
-        stream.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
+        G3D::BinaryOutput bitstream = new G3D::BinaryOutput();
+        bitstream.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
 
-        stream.beginBits();
+        bitstream.beginBits();
 
         // write type of data
-        stream.writeUInt32(batch_id);
-        stream.writeUInt32(FRAME);
+        bitstream.writeUInt32(batch_id);
+        bitstream.writeUInt32(FRAME);
 
         // write height and width
-        stream.writeUInt32(width);
-        stream.writeUInt32(height);
+        bitstream.writeUInt32(width);
+        bitstream.writeUInt32(height);
 
-        stream.endBits();
+        bitstream.endBits();
+
+        return &bitstream;
     }
 
 

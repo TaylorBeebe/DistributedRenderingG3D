@@ -11,11 +11,8 @@ namespace RemoteRenderer{
         // defines behavior of a node on the network with hooks for sockets and the GApp
         class NetworkNode{
             protected:
-                const uint FRAMERATE = 30;
 
-                bool isClient = false;
-                bool isServer = false;
-                bool isRemote = false;
+                NodeType type; 
 
                 // Each entity in the scene will have a registered network ID
                 // which will be synced across the network at setup so that at 
@@ -25,7 +22,7 @@ namespace RemoteRenderer{
                 uint net_nonce = 0;
 
             public:
-                NetworkNode(){}
+                NetworkNode(NodeType t) : type(t) {}
 
                 // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)
                 // @post: creates network ID for entity and stores reference to it
@@ -35,12 +32,13 @@ namespace RemoteRenderer{
                     return net_nonce++;
                 } 
 
+                bool isTypeOf(NodeType t){ return t == type; }
+
                 // app hooks
                 void onUpdate() {};
 
                 // socket hooks
-                void onConnection() {};
-                void onServerReady() {};
+                void onConnectionReady(uint socket_id) {};
                 void onData(uint socket_id, RenderPacket* packet) {};
         }
 
@@ -51,7 +49,7 @@ namespace RemoteRenderer{
             protected:
                 shared_ptr<WebSocket> socket;
             public:
-                SingleConnectionNode() : NetworkNode() {
+                SingleConnectionNode(NodeType type) : NetworkNode(type) {
                     // TODO: webserver needs a specification to be created
                     WebServer* server = new WebServer(specification);
 
@@ -63,14 +61,6 @@ namespace RemoteRenderer{
                 const void send(RenderPacket* packet) {
                     socket->send(*(packet->toBinary()));
                 }
-        }
-
-        // TODO: Implement, probably change this to Server because only server inherits this
-        class MultiConnectionNode : public NetworkNode {
-            protected: 
-                std::vector<shared_ptr<WebSocket>> sockets; 
-            public:
-                MultiConnectionNode() : NetworkNode() {}
         }
     }
 }

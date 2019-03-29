@@ -1,63 +1,33 @@
 #pragma once
-#include <G3D/G3D.h>
+#include "Node.h"
 
-#define WEB_PORT (8080)
+using namespace std;
+using namespace RemoteRenderer;
 
-/**
-  Simple example of sending G3D events from a web browser and injecting them
-  into the GApp event system and sending images in real-time to a web browser.
+namespace RemoteRenderer{
 
-  Connects G3D to codeheart.js.*/
-class App : public GApp {
-protected:
-	bool m_showWireframe;
+    class Server : public Node::NetworkNode {
+        private: 
 
-	shared_ptr<WebServer> m_webServer;
+            std::vector<shared_ptr<WebSocket>> sockets;
+            G3D::WebServer* webserver;
 
-	shared_ptr<GFont> m_font;
-	String m_addressString;
+            uint id_nonce = 0;
 
-	/** The image sent across the network */
-	shared_ptr<Framebuffer> m_finalFramebuffer;
+            const uint CLIENT_ID = -1;
+            shared_ptr<WebSocket> client_socket;
 
-	/** Called from onInit */
-	void makeGUI();
+            virtual void onClientData(RenderPacket* packet);
+            virtual void onRemoteData(RenderPacket* packet);
+            
+        public:
+            Server();
 
-	void startWebServer();
-	void stopWebServer();
-	void handleRemoteEvents();
+            virtual void addSocket(G3D::NetAddress* address, bool is_client_connection);
 
-public:
-
-	App(const GApp::Settings& settings = GApp::Settings());
-
-	virtual void onInit() override;
-
-	virtual void onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& surface3D) override;
-	virtual void onGraphics2D(RenderDevice* rd, Array<shared_ptr<Surface2D> >& surface2D) override;
-
-	virtual void onNetwork() override;
-	virtual bool onEvent(const GEvent& e) override;
-	virtual void onCleanup() override;
-
-	/** Sets m_endProgram to true. */
-	virtual void endProgram();
-};
+            void onData(uint socket_id, RenderPacket* packet) override;
+    }
+}
 
 
-class MySocket : public WebServer::WebSocket {
-protected:
-	MySocket(WebServer* server, mg_connection* connection, const NetAddress& clientAddress) : WebSocket(server, connection, clientAddress) {}
-public:
-	static shared_ptr<WebSocket> create(WebServer* server, mg_connection* connection, const NetAddress& clientAddress) {
-		return createShared<MySocket>(server, connection, clientAddress);
-	}
-
-	bool onConnect() override;
-
-	void onReady() override;
-
-	bool onData(Opcode opcode, char* data, size_t data_len) override;
-
-};
-
+        

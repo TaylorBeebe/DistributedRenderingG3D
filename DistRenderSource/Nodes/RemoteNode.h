@@ -13,7 +13,7 @@ namespace RemoteRenderer{
             uint height; 
             
         public:
-            RemoteNode(int sx, int sy, int ex, int ey) : Node::SingleConnectionNode(), startX(sx), startY(sy), endX(ex), endY(ey) {
+            RemoteNode(int sx, int sy, int ex, int ey) : Node::SingleConnectionNode(REMOTE), startX(sx), startY(sy), endX(ex), endY(ey) {
                 width = endX - startX;
                 height = endY - startY;
             }

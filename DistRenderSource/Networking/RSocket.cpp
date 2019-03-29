@@ -7,6 +7,7 @@ namespace RemoteRenderer{
 
 
     bool RSocket::onConnect() {
+        node->onConnectionReady(socket_id);
         return true;
     }
 
@@ -16,7 +17,6 @@ namespace RemoteRenderer{
         // send("{\"type\": 0, \"value\":\"server ready\"");
         // clientWantsImage = 1;
     }
-
 
     bool RSocket::onData(Opcode opcode, char* data, size_t data_len) {
 
@@ -34,6 +34,9 @@ namespace RemoteRenderer{
             return true;
         }
 
+        // decide what kind of packet the data needs to be
+        RenderPacket* packet;
+
         // pass on bitstream
         G3D::BinaryInput* bitstream = new G3D::BinaryInput(data, data_len, G3D::G3DEndian::G3D_BIG_ENDIAN, false, true);
 
@@ -43,17 +46,22 @@ namespace RemoteRenderer{
         uint type = bitstream->readUInt32();
         bitstream->endBits();
 
-        RenderPacket* packet;
-        
-        switch(type){
-            case TRANSFORM:
-                packet = (RenderPacket*) (new TransformPacket(batch_id, bitstream));
-                break;
-            case FRAME:
-                packet = (RenderPacket*) (new FramePacket(batch_id, bitstream));
-                break;
+        // if the node is a server, send a raw packet because we don't care about the raw data
+        // otherwise convert it to a much more complex data packet depending on the type
+        if(node->isTypeOf(SERVER)){
+            packet = (RenderPacket*) new RawPacket(batch_id, type, bitstream, false);
+        }else{
+            switch(type){
+                case TRANSFORM:
+                    packet = (RenderPacket*) new TransformPacket(batch_id, bitstream);
+                    break;
+                case FRAME:
+                    packet = (RenderPacket*) new FramePacket(batch_id, bitstream);
+                    break;
+            }
         }
 
+        // send it off to the node
         node->onData(socket_id, packet);
 
         return true;

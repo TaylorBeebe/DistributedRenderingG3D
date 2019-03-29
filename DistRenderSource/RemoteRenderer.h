@@ -6,11 +6,21 @@
 
 namespace RemoteRenderer{
 
+    const uint FRAMERATE = 30;
+    const uint SCREEN_WIDTH = 1920;
+    const uint SCREEN_HEIGHT = 1080;
+
     G3D::NetAddress SERVER;
     G3D::NetAddress CLIENT;
     G3D::NetAddress N1;
     G3D::NetAddress N2;
     G3D::NetAddress N3;
+
+    enum NodeType {
+        SERVER,
+        CLIENT,
+        REMOTE
+    }
 
     // Supported network packet types
     enum PacketType {
@@ -28,5 +38,6 @@ namespace RemoteRenderer{
         float pitch;
         float roll;
     } transform_t;
+
 
 }
