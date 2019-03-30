@@ -5,13 +5,19 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
+Client::Client(): Node::SingleConnectionNode(CLIENT) {}
+
 // @pre: incoming data packet
 // @post: saves the frame and renders it on the dealine (hopefully)
 void Client::onData(uint socket_id, RenderPacket* packet){
 
-    switch(packet.getPacketType()){
+    switch(packet->getPacketType()){
         case FRAME:
             // TODO: what will the client do when it receives a frame
+
+            // decode the packet
+            FramePacket* frame = new FramePacket(packet);
+            
             break;    
         default:
             debugPrintf("Client received incompatible packet type\n");

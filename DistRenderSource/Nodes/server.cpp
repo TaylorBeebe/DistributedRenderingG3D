@@ -16,14 +16,14 @@ namespace RemoteRenderer{
 
         // TODO: need to get the mg_connection some how and server_address
         shared_ptr<G3D::WebSocket> sock = RSocket::create(server, mg_connection, address);
-        sock->node = this;
+        sock.setNode(&this);
         
         if(is_client_connection && client_socket == NULL){
-            sock->socket_id = -1;
+            sock.setSocketId(CLIENT_ID);
             client_socket = sock;
         }else{
-            sock->socket_id = id_nonce++;
-            sockets.add(sock);
+            sock.setSocketId(100);
+            remotes.push_back(sock);
         }
 
     }
@@ -38,11 +38,10 @@ namespace RemoteRenderer{
     void Server::onClientData(RenderPacket* packet){
         switch(packet->getPacketType()){
             case TRANSFORM:
-
+            
                 // reroute transform data
-                G3D::BinaryOutput data = *(packet->toBinary());
-                for(int i = 0; i < sockets.size(); i++) 
-                    sockets[i]->send(data); 
+                for (std::list<transform_t*>::iterator it = remotes.begin(); it != remotes.end(); ++it) 
+                    it->sendPacket(packet);
 
                 break;
             case FRAME:
@@ -60,9 +59,9 @@ namespace RemoteRenderer{
 
                 // TODO: combine frame data in buffer and if all there send to client
 
-                // send a frame packet to the client
+                // send a new frame packet to the client
                 FramePacket* frame_data = new FramePacket(packet->getBatchId());
-                client_socket->send(*(frame_data->toBinary()));
+                client_socket->sendPacket(packet);
 
                 break;
         }

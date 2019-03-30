@@ -10,48 +10,40 @@ namespace RemoteRenderer{
         protected:
             PacketType type;
             uint batch_id;
+
+            G3D::BinaryInput* bitdata;
+            bool compressed = false;
+            
         public:
-            RenderPacket(PacketType t, uint bid): type(t), batch_id(bid) {}
+            // empty packet
+            RenderPacket(PacketType t, uint bid);
+            // from raw binary data
+            RenderPacket(char* data, size_t len, bool c);
 
-            G3D::BinaryOutput* toBinary() {
-                return new G3D::BinaryOutput();
-            }
+            virtual G3D::BinaryOutput* toBinary();
 
+            G3D::BinaryInput* getBitStream() { return bitdata; }
             uint getBatchId() { return batch_id; }
             PacketType getPacketType() { return type; }
-    }
-
-
-    // RAW PACKET CLASS
-    // holds raw binary data
-    class RawPacket : public RenderPacket {
-        private:
-            G3D::BinaryInput* bitstream;
-            bool compressed;
-        public:
-            RawPacket(uint batch_id, PacketType t, G3D::BinaryInput* b, bool c) : RenderPacket(t, batch_id), bitstream(b), compressed(c) {
-                bitstream->reset();
-            };
-
-            G3D::BinaryOutput* toBinary() override;
-            G3D::BinaryInput* getBitStream() { return bitstream };
+            bool isCompressed() { return compressed; }
     }
 
     // TRANSFORM PACKET CLASS
     // holds a list of transforms 
     // each transform 
     class TransformPacket : public RenderPacket {
-        public:
+        private:
             std::list<transform_t*> transforms;
-
+        public:
             TransformPacket(uint bid);
-            TransformPacket(RawPacket* raw_packet);
+            TransformPacket(RenderPacket* rpacket);
             TransformPacket(uint bid, G3D::BinaryInput* bitstream);
 
             G3D::BinaryOutput* toBinary() override;
 
             void addTransform(uint id, G3D::CFrame* frame);
 
+            std::list<transform_t*> getTransforms() { return transforms; }
     }
 
     // FRAME PACKET CLASS
@@ -67,7 +59,7 @@ namespace RemoteRenderer{
         public:
             FramePacket(uint bid);
             FramePacket(uint bid, uint w, uint h);
-            FramePacket(RawPacket* raw_packet);
+            FramePacket(RenderPacket* rpacket);
             FramePacket(uint bid, G3D::BinaryInput* bitstream);
 
             G3D::BinaryOutput* toBinary() override;

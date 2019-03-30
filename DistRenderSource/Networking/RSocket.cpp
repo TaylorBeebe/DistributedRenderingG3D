@@ -5,6 +5,9 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
+    void RSocket::sendPacket(RenderPacket* packet){
+        send(*(packet->toBinary()));
+    }
 
     bool RSocket::onConnect() {
         node->onConnectionReady(socket_id);
@@ -33,35 +36,9 @@ namespace RemoteRenderer{
             debugPrintf("Message makes no sense\n");
             return true;
         }
-
-        // decide what kind of packet the data needs to be
-        RenderPacket* packet;
-
-        // pass on bitstream
-        G3D::BinaryInput* bitstream = new G3D::BinaryInput(data, data_len, G3D::G3DEndian::G3D_BIG_ENDIAN, false, true);
-
-        // read the preamble
-        bitstream->beginBits();
-        uint batch_id = bitstream->readUInt32();
-        uint type = bitstream->readUInt32();
-        bitstream->endBits();
-
-        // if the node is a server, send a raw packet because we don't care about the raw data
-        // otherwise convert it to a much more complex data packet depending on the type
-        if(node->isTypeOf(SERVER)){
-            packet = (RenderPacket*) new RawPacket(batch_id, type, bitstream, false);
-        }else{
-            switch(type){
-                case TRANSFORM:
-                    packet = (RenderPacket*) new TransformPacket(batch_id, bitstream);
-                    break;
-                case FRAME:
-                    packet = (RenderPacket*) new FramePacket(batch_id, bitstream);
-                    break;
-            }
-        }
-
+        
         // send it off to the node
+        RenderPacket* packet = new RenderPacket(data, data_len, false);
         node->onData(socket_id, packet);
 
         return true;

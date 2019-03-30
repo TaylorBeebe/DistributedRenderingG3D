@@ -38,8 +38,8 @@ namespace RemoteRenderer{
                 void onUpdate() {};
 
                 // socket hooks
-                void onConnectionReady(uint socket_id) {};
-                void onData(uint socket_id, RenderPacket* packet) {};
+                void onConnectionReady(uint socket_id) {}
+                void onData(uint socket_id, RenderPacket* packet) {}
         }
 
         // SINGLE CONNECTION NODE CLASS
@@ -55,11 +55,11 @@ namespace RemoteRenderer{
 
                     // TODO: need to get the mg_connection some how and server_address
                     socket = RSocket::create(server, mg_connection, server_address);
-                    socket->node = this;
+                    socket.setNode(&this);
                 }
 
                 const void send(RenderPacket* packet) {
-                    socket->send(*(packet->toBinary()));
+                    socket->sendPacket(packet);
                 }
         }
     }

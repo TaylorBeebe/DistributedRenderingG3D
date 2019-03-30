@@ -8,15 +8,12 @@ namespace RemoteRenderer{
 
     class Server : public Node::NetworkNode {
         private: 
-
-            std::vector<shared_ptr<WebSocket>> sockets;
+            std::list<shared_ptr<WebSocket>> remotes;
+            shared_ptr<WebSocket> client_socket;
             G3D::WebServer* webserver;
 
-            uint id_nonce = 0;
-
-            const uint CLIENT_ID = -1;
-            shared_ptr<WebSocket> client_socket;
-
+            const uint CLIENT_ID = 0;
+            
             virtual void onClientData(RenderPacket* packet);
             virtual void onRemoteData(RenderPacket* packet);
             

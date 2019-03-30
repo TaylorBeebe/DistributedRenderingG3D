@@ -18,12 +18,13 @@ namespace RemoteRenderer{
             }
 
             void setSocketId(uint id){ socket_id = id; }
+            void setNode(Node::NetworkNode* n) {node = n;}
+            virtual void sendPacket(* packet);
 
             bool onConnect() override;
-
             void onReady() override;
-
             bool onData(Opcode opcode, char* data, size_t data_len) override;
+
     }
 
 
