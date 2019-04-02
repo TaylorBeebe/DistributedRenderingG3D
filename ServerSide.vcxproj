@@ -19,12 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DistRenderSource\Server.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="DistRenderSource\Server.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="DistRenderSource\ServerSide\data-files\www\game.js" />
     <None Include="DistRenderSource\ServerSide\data-files\www\index.html" />
   </ItemGroup>
@@ -32,11 +26,17 @@
     <Image Include="DistRenderSource\ServerSide\data-files\www\dpad.png" />
     <Image Include="DistRenderSource\ServerSide\data-files\www\favicon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DistRenderSource\Nodes\server_.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DistRenderSource\Nodes\server_.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{39624ACE-1629-49CD-8D59-6013408EFB1E}</ProjectGuid>
     <RootNamespace>ServerSide</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
