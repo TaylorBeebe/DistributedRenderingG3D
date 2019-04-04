@@ -3,31 +3,42 @@
 
 namespace RemoteRenderer{
 
+    struct {
+        bool handshake;
+        uint id;
+        uint y;
+        uint h;
+        shared_ptr<NetConnection> connection;
+    } remote_connection_t;
+
     class Router {
         private: 
-            bool running = false;
-            uint current_batch;
-            uint num_nodes = 0;
-
-            shared_ptr<G3D::NetServer> net_server;
-
+            bool running;
+            
             // pixels
-            uint pieces = 0;
-            // some pixel buffer
+            uint current_batch;
+            uint pieces;
+            // -- some pixel buffer
             void flushPixelBuffer();
             void stitch(Image& fragment, uint x, uint y);
                 
             // networking tools
-            void poll();
+            uint nonce;
+            uint handshakes;
+            map<uint, remote_connection_t*> remote_connection_registry;
+            shared_ptr<NetworkConnection> client;
+
+            void receive();
             void shutdown();
+
+            void addClient(G3D::NetAddress& address);
+            void addRemote(G3D::NetAddress& address);
+            void removeRemote(G3D::NetAddress& address);
+
+            void removeClient();
 
         public:
             Router();
-
-            void addConnectionClient(G3D::NetAddress& address);
-            void addConnectionRemote(G3D::NetAddress& address);
-
-            void onData(RenderPacket& packet);
     }
 
 }

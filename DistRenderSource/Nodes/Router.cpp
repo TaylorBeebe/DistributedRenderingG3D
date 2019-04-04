@@ -11,99 +11,178 @@ namespace RemoteRenderer{
     // they will not respond immediately but once their application is setup and they have received the 
     // screen data they will respond with their own handshake the router will tally up the handshakes 
     // and when all handshakes are accounted for it will broadcast a ready message
-    Router::Router() {
-        net_server = NetServer::create(Router, 32, G3D::UNLIMITED_BANDWIDTH, G3D::UNLIMITED_BANDWIDTH);
+    Router::Router() : running(false),  pieces(0), nonce(0), handshakes(0){
 
-        // set up connections
+        // init registry
+        remote_connection_registry();
 
-        // calculate screen data 
+        // set up connections (in the future make this dynamic with a reference list or something)
+        addClient(Constants::CLIENT_ADDR);
+        addRemote(Constants::N1_ADDR);
+        addRemote(Constants::N2_ADDR);
+        addRemote(Constants::N3_ADDR);
 
-        // handshake screen data to nodes
+        // calculate screen data
+        // configureScreenData();
         
         // poll network for updates
-        poll();
+        receive();
     }
 
-    // digest available packets
-    void Router::poll(){
+    // This receive method will check for available messages as long as the running flag is set true
+    // it will check every connection in the remote connection registry and the client connection
+    // then call whatever code is specified with the message type
+    void Router::receive(){
 
-        G3D::NetConnectionIterator iter = net_server->newConnectionIterator();
+        map<uint, remote_connection_t*>::iterator remotes;
+
+        NetMessageIterator iter;
+        BinaryInput& header;
+        uint batch_id;
 
         while(running){
-            for(; iter.isValid(); iter++){
-                shared_ptr<G3D::NetConnection> conn = iter.connection();
-                for(G3D::NetMessageIterator iter2 = conn->incomingMessageIterator(); iter2.isValid(); iter2++){
-                    // make a render packet
-                    RenderPacket packet ((PacketType) iter2.type(), iter2.headerBinaryInput(), iter2.binaryInput());
-                    // call network node packet handler
-                    onData(packet, *conn);
-                }
-            }
-        }
 
+            // listen to client
+            for(iter = client->incomingMessageIterator(); iter.isValid(); iter++){
+                try {
+                    header = iter.headerBinaryInput();
+                    header.beginBits();
+
+                    batch_id = header.readUInt32();
+
+                    switch(iter.type()){
+                        case PacketType::TRANSFORM:
+
+                            // reset batch variables
+                            current_batch = batch_id;
+                            flushPixelBuffer();
+                            pieces = 0;
+                        
+                            // reroute transform data to all remotes
+                            broadcast(PacketType::TRANSFORM, toBinaryOutput(header), toBinaryOutput(iter.binaryInput()), false);
+
+                            break;
+                        default: // don't need this
+                    }
+
+                    header.endBits();
+
+                }catch(...){
+                    // handle client error
+                }
+            } // client message loop
+
+            // listen to remote connections
+            for(remotes = remote_connection_registry.begin(); remotes != remote_connection_registry.end(); remotes++){
+                remote_connection_t* conn_vars = remotes->second;
+                shared_ptr<NetConnection> conn = conn_vars->connection;
+
+                for(iter = conn->incomingMessageIterator(); iter.isValid(); iter++){
+                    try {  
+
+                        header = iter.headerBinaryInput();
+                        header.beginBits();
+                        batch_id = header.readUInt32();
+
+                        switch(iter.type()){
+                            case PacketType::TRANSFORM:
+
+                                // reset batch variables
+                                current_batch = batch_id;
+                                flushPixelBuffer();
+                                pieces = 0;
+                            
+                                // reroute transform data to all remotes
+                                broadcast(PacketType::TRANSFORM, toBinaryOutput(header), toBinaryOutput(iter.binaryInput()), false);
+
+                                break;
+
+                            case PacketType::FRAGMENT:
+
+                                // old frag, toss out
+                                if (batch_id != current_batch) break;
+
+                                // attach fragment to buffer
+
+                                // check if finished
+                                if (++pieces == remote_connection_registry.size()){
+                                    // send a new frame packet to the client
+                                    G3D::BinaryOutput data ();
+                                    data.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
+
+                                    G3D::Image frame; // get from buffer
+                                    frame.serialize(data, Image::JPEG);
+
+                                    client->send(PacketType::FRAME, data, toBinaryOutput(batch_id), 0);
+                                }
+
+                                break;
+
+                            case PacketType::HANDSHAKE:
+
+                                // do accounting
+                                if(!conn_vars->handshake){
+                                    conn_vars->handshake = true;
+                                    handshakes++;
+                                }
+
+                                // if everyone is accounted for and running without error
+                                // broadcast a ready message to every node and await the client's start
+                                if(handshakes == remote_connection_registry.size()){
+                                    running = true;
+                                    broadcast(PacketType::READY, toBinaryOutput(0), toBinaryOutput(0), true);
+                                }
+
+                                break;
+
+                            default: // router received unkown message
+                                break;
+
+                        } // end switch
+
+                        header.endBits();
+
+                    }catch(...){
+                        // handle error
+                    }
+                } // remote message loop
+            } // remote connection loop
+        } // main loop
     }
 
-    void Router::addConnectionClient(G3D::NetAddress& address){
-
+    void Router::addClient(G3D::NetAddress& address){
+        client = NetConnection::connectToServer(address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
     }
 
     // @pre: network address of node
-    // @post: creates a new RSocket, ids it, and adds it to the socket list
-    void Router::addConnectionRemote(G3D::NetAddress& address){
-        
+    // @post: creates a new NetConnection, ids it, and adds it to the registry
+    void Router::addRemote(G3D::NetAddress& address){
 
+        uint id = nonce++;
+
+        remote_connection_t* cv = new remote_connection_t();
+        cv->id = id;
+        cv->handshake = false;
+
+        // figure out later
+        cv->y = 0;
+        cv->h = 100;
+
+        cv->connection = NetConnection::connectToServer(address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
+        remote_connection_registry[id] = cv;
     }
 
-    // @pre: incoming data packet and socket it came from
-    // @post: reroutes packet depending on what type of node sent it
-    void Router::onData(RenderPacket& packet, G3D::NetConnection& connection){
-         switch(packet.getPacketType()){
-            case PacketType::TRANSFORM:
+    void Router::removeRemote(G3D::NetAddress& address){
+        // more complicated
+    }
 
-                // reset
-                current_batch = packet.getBatchId();
-                flushPixelBuffer();
-                pieces = 0;
-            
-                // reroute transform data to all remotes
-                // for (std::list<transform_t*>::iterator it = remotes.begin(); it != remotes.end(); ++it) 
-                    // it->sendPacket(packet);
+    void Router::broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client){
 
-                break;
-            case PacketType::FRAGMENT:
+        if(include_client) client->send(t, body, header, 0);
 
-                // old frag, toss out
-                if (packet.getBatchId() != current_batch) break;
-
-                // attach fragment to buffer
-
-                // check if finished
-                if (++pieces == num_nodes){
-                    // send a new frame packet to the client
-                    RenderPacket packet (PacketType::FRAME, current_batch);
-                    G3D::BinaryOutput data ();
-                    data.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
-
-                    G3D::Image frame; // get from buffer
-
-                    frame.serialize(data, Image::JPEG);
-
-                    packet.setBody(data);
-                    // send to client
-                }
-
-                break;
-            case PacketType::HANDSHAKE:
-                // do accounting
-                // if everyone is accounted for and running without error
-                running = true;
-                // broadcast a ready message to every node and await the client's start
-                G3D::BinaryOutput bo ();
-                bo.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
-                net_server->omniConnection()->send(PacketType::READY, bo, 0);
-            default:
-                // strange packet
-                break;
+        map<uint, remote_connection_t*>::iterator iter;
+        for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
+            iter->second->connection->send(t, body, header, 0);
         }
     }
 

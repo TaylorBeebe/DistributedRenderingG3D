@@ -7,7 +7,7 @@
 
 namespace RemoteRenderer{
 
-    namespace constants {
+    namespace Constants {
 
         // display
         const uint FRAMERATE = 30;
@@ -43,16 +43,29 @@ namespace RemoteRenderer{
         END
     }
 
-    // a transform is a 7 tuple
-    struct {
-        uint id;
-        float x;
-        float y;
-        float z;
-        float yaw;
-        float pitch;
-        float roll;
-    } transform_t;
 
+    // Utils
+    
+    BinaryOutput& toBinaryOutput(uint i){
+        BinaryOutput bo ();
+        bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+
+        bo.beginBits();
+        bo.writeUInt32(i);
+        bo.endBits();
+
+        return bo;
+    }
+
+    BinaryOutput& toBinaryOutput(BinaryInput& in){
+        BinaryOutput bo ();
+        bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+
+        bo.beginBits();
+        bo.writeBits((uint) in.getCArray(), in.getLength());
+        bo.endBits();
+
+        return bo;
+    }
 
 }

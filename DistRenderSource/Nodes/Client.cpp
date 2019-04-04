@@ -1,40 +1,56 @@
 #include "Node.h"
 
 using namespace std;
-using namespace RemoteRenderer;
+using namespace G3D;
 
 namespace RemoteRenderer{
 
-    Client::Client() : NetworkNode(constants::ROUTER_ADDR, NodeType::CLIENT) {}
+    Client::Client() : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT) {
+        iter = connection->incomingMessageIterator();
+    }
 
-    // @pre: incoming data packet
-    // @post: saves the frame and renders it on the dealine (hopefully)
-    void Client::onData(RenderPacket& packet){
+    void Client::checkNetwork(){
 
-        switch(packet.getPacketType()){
-            case PacketType::FRAME:
+        if(!iter.isValid()) return;
 
-                shared_ptr<G3D::Image> frame = G3D::Image::fromBinaryInput(packet.getBody(), new ImageFormat::RGB8())
+        try{
 
-                // cache in frame buffer
+            G3D::BinaryInput& header = iter.headerBinaryInput();
+            header.beginBits();
+            uint batch_id = header.readUInt32();
 
-                break;
-            case PacketType::READY:
-                // if the client receives a ready from the router, this means that the router
-                // has contact with all nodes and is ready to start 
+            switch(iter.type()){
+                case PacketType::FRAME:
 
-                running = true;
-                
-                // start game tick
+                    shared_ptr<G3D::Image> frame = G3D::Image::fromBinaryInput(iter.binaryInput(), new ImageFormat::RGB8())
 
-                break;
-            case PacketType::END:
-                // clean up
-                break;
-            default:
-                debugPrintf("Client received incompatible packet type\n");
-                break;   
+                    // cache in frame buffer
+
+                    break;
+                case PacketType::READY:
+                    // if the client receives a ready from the router, this means that the router
+                    // has contact with all nodes and is ready to start 
+
+                    running = true;
+                    
+                    // start game tick
+
+                    break;
+                case PacketType::END:
+                    // clean up
+                    break;
+                default: // Client does not need this datatype
+                    debugPrintf("Client received incompatible packet type\n");
+                    break;   
+            } // end switch
+
+            header.endBits();
+
+        } catch(...) {
+            // handle error
         }
+
+        ++iter;
     }
 
     // @pre: registered ID of an entity
@@ -78,15 +94,10 @@ namespace RemoteRenderer{
 
         batch.endBits();
 
-        RenderPacket packet (TRANSFORM, current_batch_id);
-        packet.setBody(batch);
-
         // net message send batch to router ip
-        send(packet);
+        send(TRANSFORM, toBinaryOutput(current_batch_id), batch);
 
         // clear recently used
         // changed_entities.erase();
     }
-
-
 }
