@@ -4,175 +4,88 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
-    //////////////////////////////////////////////
-    //              RENDER PACKETS
-    //////////////////////////////////////////////
-
+    // empty packet
     RenderPacket::RenderPacket(PacketType t, uint bid) : type(t), batch_id(bid) {}
 
-    RenderPacket::RenderPacket(char* data, size_t len, bool c) : compressed(c){
-
-        bitdata = new G3D::BinaryInput(data, len, G3D::G3DEndian::G3D_BIG_ENDIAN, compressed, true);
-
-        // read the header
-        bitdata->beginBits();
-        batch_id = bitdata->readUInt32();
-        type = bitdata->readUInt32();
-        bitdata->endBits();
+    // from binary input
+    RenderPacket::RenderPacket(PacketType t, G3D::BinaryInput& header, G3D::BinaryInput& body) : type(t) {
+        setHeader(header);
+        setBody(body);
     }
 
-    G3D::BinaryOutput* RenderPacket::toBinary(){
+    void RenderPacket::setHeader(G3D::BinaryInput& b){
+        b.beginBits();
 
-        G3D::BinaryOutput newstream = new G3D::BinaryOutput();
-        newstream.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
+        batch_id = b.readUInt32();
 
-        if(bitdata != NULL){
-            newstream.beginBits();
+        // switch(type){
+        //     case PacketType::FRAME:
+        //         // maybe height and width
+        //         break;
+        //     case PacketType::FRAGMENT:
+                
+        //         break;
+        //     default:
+        //         // no need to read anything else
+        //         break;
+        // }
 
-            long length = bitdata->getLength();
-            // sketchy, still wondering about input datatype
-            newstream.writeBits(bitdata->readBits(length), length);
-
-            newstream.endBits();
-            if(compressed) newstream.compress();
-        }
-
-        return &newstream;
+        b.endBits();
     }
 
-    //////////////////////////////////////////////
-    //             TRANSFORM PACKETS
-    //////////////////////////////////////////////
-
-    TransformPacket::TransformPacket(uint batch_id) : RenderPacket(TRANSFORM, batch_id) {}
-
-    TransformPacket::TransformPacket(RenderPacket* rpacket) {
-        if(rpacket->getPacketType() == TRANSFORM) TransformPacket(rpacket->getBatchId(), rpacket->getBitStream());
-        else TransformPacket(rpacket->getBatchId()); // return empty packet, probably should print something here
+    void RenderPacket::setHeader(G3D::BinaryOutput& b){
+        setHeader(new BinaryInput((char*) b.getCArray(), b.length(), G3D::G3DEndian::G3D_BIG_ENDIAN, constants::COMPRESS_NETWORK_DATA, true));
     }
 
-    TransformPacket::TransformPacket(uint batch_id, G3D::BinaryInput* bitstream) : RenderPacket(TRANSFORM, batch_id), bitdata(bitstream) {
-
-        bitdata = bitstream;
-
-        bitdata->reset();
-        bitdata->beginBits();
-
-        // skip batch and type 
-        bitdata->readUInt32();
-        bitdata->readUInt32();
-
-        while(bitdata->hasMore()){
-            uint id = bitdata->readUInt32();
-            float x = bitdata->readFloat32();
-            float y = bitdata->readFloat32();
-            float z = bitdata->readFloat32();
-            float yaw = bitdata->readFloat32();
-            float pitch = bitdata->readFloat32();
-            float roll = bitdata->readFloat32();
-
-            addTransform(id,x,y,z,yaw,pitch,roll);
-        }
-
-        bitdata->endBits();
+    void RenderPacket::setHeader(char* dat, long len){
+        setHeader(new BinaryInput(dat, len, G3D::G3DEndian::G3D_BIG_ENDIAN, constants::COMPRESS_NETWORK_DATA, true));
     }
 
-    G3D::BinaryOutput* TransformPacket::toBinary(){
-
-        G3D::BinaryOutput bitstream = new G3D::BinaryOutput();
-        bitstream.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
-
-        bitstream.beginBits();
-
-        // write type of data
-        bitstream.writeUInt32(batch_id);
-        bitstream.writeUInt32(TRANSFORM);
-
-        // write each transform as an id followed by 6 floats
-        for (std::list<transform_t*>::iterator it=transforms.begin(); it != transforms.end(); ++it){
-
-            transform_t* transform = *it;
-
-            bitstream.writeUInt32(transform->id);
-            bitstream.writeFloat32(transform->x);
-            bitstream.writeFloat32(transform->y);
-            bitstream.writeFloat32(transform->z);
-            bitstream.writeFloat32(transform->yaw);
-            bitstream.writeFloat32(transform->pitch);
-            bitstream.writeFloat32(transform->roll);
-
-        }
-
-        bitstream.endBits();
-        if(compressed) bitstream.compress();
-
-        return &bitstream;
+    void RenderPacket::setBody(G3D::BinaryInput& b){
+        data = (char*) b.getCArray();
+        data_len = b.length();
     }
 
-    void TransformPacket::addTransform(uint id, G3D::CFrame* frame){
-        float x,y,z,yaw,pitch,roll;
-        frame->getXYZYPRRadians(x,y,z,yaw,pitch,roll)
-
-        transform_t* transform = new transform_t();
-
-        transform->id = id;
-        transform->x = x;
-        transform->y = y;
-        transform->z = z;
-        transform->yaw = yaw;
-        transform->pitch = pitch;
-        transform->roll = roll;
-
-        addTransform(t);
+    void RenderPacket::setBody(G3D::BinaryOutput& b){
+        data = (char*) b.getCArray();
+        data_len = b.length();
     }
 
-    void TransformPacket::addTransform(transform_t* t){
-        transforms.push_back(transform);
+    void RenderPacket::setBody(char* dat, long len){
+        data = dat;
+        data_len = len;
     }
 
+    G3D::BinaryOutput& RenderPacket::serializeHeader(){
+        G3D::BinaryOutput* header ();
+        header.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
 
-    //////////////////////////////////////////////
-    //               FRAME PACKETS
-    //////////////////////////////////////////////
+        header.beginBits();
 
-    FramePacket::FramePacket(uint batch_id) : FramePacket(batch_id, SCREEN_WIDTH, SCREEN_HEIGHT) {}
+        // write body
+        header.writeBits((uint*) data, data_len);
 
-    FramePacket::FramePacket(uint batch_id, uint w, uint h) : RenderPacket(FRAME, batch_id), width(w), height(h) {}
+        header.endBits();
 
-    FramePacket::FramePacket(RenderPacket* rpacket) {
-        if(rpacket->getPacketType() == FRAME) FramePacket(rpacket->getBatchId(), rpacket->getBitStream());
-        else FramePacket(rpacket->getBatchId()); // return empty packet, probably should print something here
+        if(constants::COMPRESS_NETWORK_DATA) header.compress();
+
+        return header;
     }
 
-    FramePacket::FramePacket(uint batch_id, G3D::BinaryInput* bitstream) : RenderPacket(FRAME, batch_id), bitdata(bitstream){
-        // TODO: Impl
+    G3D::BinaryOutput& RenderPacket::serializeBody(){
+        G3D::BinaryOutput body ();
+        body.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
 
-        bitdata->reset();
-        bitdata->beginBits();
+        body.beginBits();
 
-        bitdata->endBits();
+        // write body
+        body.writeBits((uint*) data, data_len);
+
+        body.endBits();
+
+        if(constants::COMPRESS_NETWORK_DATA) body.compress();
+
+        return body;
     }
-
-    G3D::BinaryOutput* FramePacket::toBinary(){
-        // TODO: Impl
-
-        G3D::BinaryOutput bitstream = new G3D::BinaryOutput();
-        bitstream.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
-
-        bitstream.beginBits();
-
-        // write type of data
-        bitstream.writeUInt32(batch_id);
-        bitstream.writeUInt32(FRAME);
-
-        // write height and width
-        bitstream.writeUInt32(width);
-        bitstream.writeUInt32(height);
-
-        bitstream.endBits();
-
-        return &bitstream;
-    }
-
 
 }

@@ -1,62 +1,92 @@
-#include "Client.h"
+#include "Node.h"
 
 using namespace std;
 using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
-Client::Client(): Node::SingleConnectionNode(CLIENT) {}
+    Client::Client() : NetworkNode(constants::ROUTER_ADDR, NodeType::CLIENT) {}
 
-// @pre: incoming data packet
-// @post: saves the frame and renders it on the dealine (hopefully)
-void Client::onData(uint socket_id, RenderPacket* packet){
+    // @pre: incoming data packet
+    // @post: saves the frame and renders it on the dealine (hopefully)
+    void Client::onData(RenderPacket& packet){
 
-    switch(packet->getPacketType()){
-        case FRAME:
-            // TODO: what will the client do when it receives a frame
+        switch(packet.getPacketType()){
+            case PacketType::FRAME:
 
-            // decode the packet
-            FramePacket* frame = new FramePacket(packet);
-            
-            break;    
-        default:
-            debugPrintf("Client received incompatible packet type\n");
-            break;   
-    }
-}
+                shared_ptr<G3D::Image> frame = G3D::Image::fromBinaryInput(packet.getBody(), new ImageFormat::RGB8())
 
-// @pre: registered ID of an entity
-// @post: marks that entity as changed
-void Client::setEntityChanged(unsigned int id){
-    // safety check
-    changed_entities.insert(id);
-}
+                // cache in frame buffer
 
-// @pre: expects a deadline in ms that will be used as reference by the network
-// @post: sends updated entity data on the network with corresponding job ID and deadline
-void Client::renderOnNetwork(){
+                break;
+            case PacketType::READY:
+                // if the client receives a ready from the router, this means that the router
+                // has contact with all nodes and is ready to start 
 
-    current_job_id++;
-    ms_to_deadline = 1000 / FRAMERATE;
+                running = true;
+                
+                // start game tick
 
-    // initialize batch
-    TransformPacket* batch = new TransformPacket(current_job_id);
-
-    // this currently loops through every entity
-    // this is inefficient and should be improved such that we only iterate through a 
-    // set of ids that were changed
-    for (map<unsigned int, Entity*>::iterator it = entityRegistry.begin(); it!=entityRegistry.end(); ++it){
-        Enitity* ent = it->second;
-
-        batch->addTransform(it->first, ent->frame);
+                break;
+            case PacketType::END:
+                // clean up
+                break;
+            default:
+                debugPrintf("Client received incompatible packet type\n");
+                break;   
+        }
     }
 
-    // net message send batch to server ip
-    send(batch);
+    // @pre: registered ID of an entity
+    // @post: marks that entity as changed
+    void Client::setEntityChanged(unsigned int id){
+        // safety check
+        changed_entities.insert(id);
+    }
 
-    // clear recently used
-    changed_entities.erase();
-}
+    // @pre: expects a deadline in ms that will be used as reference by the network
+    // @post: sends updated entity data on the network with corresponding job ID and deadline
+    void Client::sendTransforms(){
+
+        current_batch_id++;
+        ms_to_deadline = 1000 / FRAMERATE;
+
+        // serialize 
+        G3D::BinaryOutput batch ();
+        batch.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
+
+        batch.beginBits();
+
+        // this currently loops through every entity
+        // this is inefficient and should be improved such that we only iterate through a 
+        // set of ids that were changed
+        for (map<unsigned int, Entity*>::iterator it = entityRegistry.begin(); it!=entityRegistry.end(); ++it){
+            Enitity* ent = it->second;
+
+            float x,y,z,yaw,pitch,roll;
+            ent->getFrame()->getXYZYPRRadians(x,y,z,yaw,pitch,roll);
+
+            bitstream.writeUInt32(it->first);
+            bitstream.writeFloat32(x);
+            bitstream.writeFloat32(y);
+            bitstream.writeFloat32(z);
+            bitstream.writeFloat32(yaw);
+            bitstream.writeFloat32(pitch);
+            bitstream.writeFloat32(roll);
+
+        }
+
+        batch.endBits();
+
+        RenderPacket packet (TRANSFORM, current_batch_id);
+        packet.setBody(batch);
+
+        // net message send batch to router ip
+        send(packet);
+
+        // clear recently used
+        // changed_entities.erase();
+    }
 
 
 }

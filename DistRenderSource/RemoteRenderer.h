@@ -7,26 +7,40 @@
 
 namespace RemoteRenderer{
 
-    const uint FRAMERATE = 30;
-    const uint SCREEN_WIDTH = 1920;
-    const uint SCREEN_HEIGHT = 1080;
+    namespace constants {
 
-    G3D::NetAddress SERVER;
-    G3D::NetAddress CLIENT;
-    G3D::NetAddress N1;
-    G3D::NetAddress N2;
-    G3D::NetAddress N3;
+        // display
+        const uint FRAMERATE = 30;
+        
+        const uint SCREEN_WIDTH = 1920;
+        const uint SCREEN_HEIGHT = 1080;
+
+        // networking
+        const bool COMPRESS_NETWORK_DATA = false;
+
+        const uint16 RPORT = 1100;
+        const uint16 APORT = 9000;
+
+        const G3D::NetAddress ROUTER_ADDR (101010101, RPORT);
+        const G3D::NetAddress CLIENT_ADDR (101010101, APORT);
+        const G3D::NetAddress N1_ADDR (101010101, APORT);
+        const G3D::NetAddress N2_ADDR (101010101, APORT);
+        const G3D::NetAddress N3_ADDR (101010101, APORT);
+    }
 
     enum NodeType {
-        SERVER,
         CLIENT,
         REMOTE
     }
 
     // Supported network packet types
     enum PacketType {
-        TRANSFORM = 0x0,
-        FRAME = 0x1
+        TRANSFORM,
+        FRAME,
+        FRAGMENT,
+        HANDSHAKE,
+        READY,
+        END
     }
 
     // a transform is a 7 tuple
