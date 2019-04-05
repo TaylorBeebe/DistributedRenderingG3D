@@ -15,6 +15,8 @@ namespace RemoteRenderer{
         const uint SCREEN_WIDTH = 1920;
         const uint SCREEN_HEIGHT = 1080;
 
+        const uint PIXEL_BLEED = 100;
+
         // networking
         const bool COMPRESS_NETWORK_DATA = false;
 
@@ -26,6 +28,7 @@ namespace RemoteRenderer{
         const G3D::NetAddress N1_ADDR (101010101, APORT);
         const G3D::NetAddress N2_ADDR (101010101, APORT);
         const G3D::NetAddress N3_ADDR (101010101, APORT);
+
     }
 
     enum NodeType {
@@ -38,34 +41,49 @@ namespace RemoteRenderer{
         TRANSFORM,
         FRAME,
         FRAGMENT,
-        HANDSHAKE,
+        CONFIG,
+        CONFIG_RECEIPT
         READY,
         END
     }
 
 
     // Utils
-    
-    BinaryOutput& toBinaryOutput(uint i){
-        BinaryOutput bo ();
-        bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+    class BinaryUtils {
+        public:
+            static BinaryOutput& toBinaryOutput(uint i) {
+                BinaryOutput bo ();
+                bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
-        bo.beginBits();
-        bo.writeUInt32(i);
-        bo.endBits();
+                bo.beginBits();
+                bo.writeUInt32(i);
+                bo.endBits();
 
-        return bo;
+                return bo;
+            }
+
+            static BinaryOutput& toBinaryOutput(uint list[]) {
+                BinaryOutput bo ();
+                bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+
+                for(uint i : list){
+                    bo.writeUInt32(i);
+                }
+
+                bo.endBits();
+
+                return bo;
+            }
+
+            static BinaryOutput& toBinaryOutput(BinaryInput& in) {
+                BinaryOutput bo ();
+                bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+
+                bo.beginBits();
+                bo.writeBits((uint) in.getCArray(), in.getLength());
+                bo.endBits();
+
+                return bo;
+            }
     }
-
-    BinaryOutput& toBinaryOutput(BinaryInput& in){
-        BinaryOutput bo ();
-        bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
-
-        bo.beginBits();
-        bo.writeBits((uint) in.getCArray(), in.getLength());
-        bo.endBits();
-
-        return bo;
-    }
-
 }

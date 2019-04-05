@@ -95,7 +95,7 @@ namespace RemoteRenderer{
         batch.endBits();
 
         // net message send batch to router ip
-        send(TRANSFORM, toBinaryOutput(current_batch_id), batch);
+        send(TRANSFORM, BinaryUtils.toBinaryOutput(current_batch_id), batch);
 
         // clear recently used
         // changed_entities.erase();

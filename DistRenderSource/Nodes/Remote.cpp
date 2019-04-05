@@ -6,8 +6,8 @@ namespace RemoteRenderer{
 
     Remote::Remote() : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE) {}
 
-    void Remote::setBounds(float sx, float sy, float ex, float ey){
-        bounds = G3D::Rect2D::xyxy(sx,sy,ex,ey);
+    void Remote::setBounds(uint y, uint height){
+        bounds = G3D::Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
     }
 
     // continuosly listen for updates and render them accordingly
@@ -36,11 +36,18 @@ namespace RemoteRenderer{
                         sendFrame(batch_id);
                         break;
 
-                    case PacketType::HANDSHAKE: // router delivers the dimension data for this node and awaits reply
+                    case PacketType::CONFIG: // router delivers the dimension data for this node and awaits reply
                         // unpack screen data
-                        // setBounds(sx,sy,ex,ey);
+                        BinaryInput& bi = iter.binaryInput();
+                        bi.beginBits();
+                        uint y = bi.readUInt32();
+                        uint h = bi.readUInt32();
+                        bi.endBits();
+
+                        setBounds(y, h);
+
                         received_screen_data = true;
-                        maybeRespondHandshake();
+                        maybeRegisterConfig();
 
                     case PacketType::READY: // client application will start, just chill
                         running = true;
@@ -103,9 +110,9 @@ namespace RemoteRenderer{
         maybeRespondHandshake();
     }
 
-    void Remote::maybeRespondHandshake(){
+    void Remote::maybeRegisterConfig(){
         if(received_screen_data && finished_setup){
-            send(PacketType::HANDSHAKE);
+            send(PacketType::CONFIG_RECEIPT);
         }
     }
 

@@ -82,8 +82,8 @@ namespace RemoteRenderer{
             
             void syncTransforms(BinaryInput& packet);
             void sendFrame(uint batch_id);
-            void setBounds(float sx, float sy, float ex, float ey);
-            void maybeRespondHandshake();
+            void setBounds(uint y, uint height);
+            void maybeRegisterConfig();
             
         public:
             Remote();
