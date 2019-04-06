@@ -23,29 +23,29 @@ namespace RemoteRenderer{
         const uint16 RPORT = 1100;
         const uint16 APORT = 9000;
 
-        const G3D::NetAddress ROUTER_ADDR (101010101, RPORT);
-        const G3D::NetAddress CLIENT_ADDR (101010101, APORT);
-        const G3D::NetAddress N1_ADDR (101010101, APORT);
-        const G3D::NetAddress N2_ADDR (101010101, APORT);
-        const G3D::NetAddress N3_ADDR (101010101, APORT);
+        const NetAddress ROUTER_ADDR (101010101, RPORT);
+        const NetAddress CLIENT_ADDR (101010101, APORT);
+        const NetAddress N1_ADDR (101010101, APORT);
+        const NetAddress N2_ADDR (101010101, APORT);
+        const NetAddress N3_ADDR (101010101, APORT);
 
     }
 
-    enum NodeType {
-        CLIENT,
-        REMOTE
-    }
+	enum NodeType {
+		CLIENT,
+		REMOTE
+	};
 
     // Supported network packet types
-    enum PacketType {
-        TRANSFORM,
-        FRAME,
-        FRAGMENT,
-        CONFIG,
-        CONFIG_RECEIPT
-        READY,
-        END
-    }
+	enum PacketType {
+		TRANSFORM,
+		FRAME,
+		FRAGMENT,
+		CONFIG,
+		CONFIG_RECEIPT,
+		READY,
+		END
+	};
 
     // Utils
     class BinaryUtils {
@@ -84,5 +84,5 @@ namespace RemoteRenderer{
 
                 return bo;
             }
-    }
+	};
 }

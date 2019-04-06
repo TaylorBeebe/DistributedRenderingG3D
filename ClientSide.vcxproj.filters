@@ -15,12 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DistRenderSource\client.cpp">
+    <ClCompile Include="DistRenderSource\Remote.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DistRenderSource\Client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DistRenderSource\Router.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DistRenderSource\client.h">
+    <ClInclude Include="DistRenderSource\Node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DistRenderSource\RemoteRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

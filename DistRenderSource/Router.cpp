@@ -38,39 +38,6 @@ map<uint, remote_connection_t*> remote_connection_registry;
 // the client connection
 shared_ptr<NetworkConnection> client;
 
-int main(){
-
-    // configure the router connections
-    setup();
-
-    // poll network for updates ad infintum
-    receive();
-
-    return 0;
-}
-
-
-// set up all net connections 
-// after all connections are set up, we broadcast a config with screen info to all remote nodes,
-// they will not respond immediately but once their application is setup and they have received the 
-// screen data they will respond with their own config. The router will tally up the configs 
-// and when all configs are accounted for it will broadcast a ready message to everyone
-void setup(){
-
-    // this registry will track remote connections, addressable with IDs
-    remote_connection_registry();
-
-    // set up connections (in the future make this dynamic with a reference list or something)
-    addClient(Constants::CLIENT_ADDR);
-
-    addRemote(Constants::N1_ADDR);
-    addRemote(Constants::N2_ADDR);
-    addRemote(Constants::N3_ADDR);
-
-    // calculate screen data
-    configureScreenSplit();
-}
-
 void addClient(NetAddress& address){
     client = NetConnection::connectToServer(address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
 }
@@ -93,6 +60,27 @@ void addRemote(NetAddress& address){
 
 void removeRemote(NetAddress& address){
     // more complicated
+}
+
+// set up all net connections 
+// after all connections are set up, we broadcast a config with screen info to all remote nodes,
+// they will not respond immediately but once their application is setup and they have received the 
+// screen data they will respond with their own config. The router will tally up the configs 
+// and when all configs are accounted for it will broadcast a ready message to everyone
+void setup() {
+
+	// this registry will track remote connections, addressable with IDs
+	remote_connection_registry();
+
+	// set up connections (in the future make this dynamic with a reference list or something)
+	addClient(Constants::CLIENT_ADDR);
+
+	addRemote(Constants::N1_ADDR);
+	addRemote(Constants::N2_ADDR);
+	addRemote(Constants::N3_ADDR);
+
+	// calculate screen data
+	configureScreenSplit();
 }
 
 // =========================================
@@ -267,4 +255,15 @@ void receive(){
             } // end remote message loop
         } // end remote connection loop
     } // end main loop
+}
+
+int main() {
+
+	// configure the router connections
+	setup();
+
+	// poll network for updates ad infintum
+	receive();
+
+	return 0;
 }

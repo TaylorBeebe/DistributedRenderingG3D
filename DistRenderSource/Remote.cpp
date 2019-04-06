@@ -4,19 +4,19 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
-    Remote::Remote() : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, RApp& app) {}
+    Remote::Remote(RApp& app) : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, app) {}
 
-    void Remote::setBounds(uint y, uint height){
+    void Remote::setClip(uint y, uint height){
         bounds = Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
     }
 
     void Remote::receive() {
 
-        G3D::NetMessageIterator& iter = connection->incomingMessageIterator();
-        G3D::BinaryInput header;
+        NetMessageIterator& iter = connection->incomingMessageIterator();
+        BinaryInput header;
         uint batch_id;
 
-        if(!iter.isValid()) continue;
+        if(!iter.isValid()) return;
         
         try{
             // read the header
@@ -71,7 +71,7 @@ namespace RemoteRenderer{
 
     // @pre: transform packet with list of transforms of entities to update
     // @post: updates frame of corresponding entity with new position data
-    void Remote::syncTransforms(G3D::BinaryInput& transforms){
+    void Remote::syncTransforms(BinaryInput& transforms){
         transforms.beginBits();
 
         while(transforms.hasMore()){

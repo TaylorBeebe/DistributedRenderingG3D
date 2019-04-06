@@ -52,7 +52,7 @@ namespace RemoteRenderer{
             bool isRunning() { return running; }
 
             virtual void finishedSetup() {}
-    }
+	};
 
     class Client : public NetworkNode{
         private:
@@ -70,7 +70,7 @@ namespace RemoteRenderer{
             void sendTransforms();
 
             void checkNetwork();
-    }
+	};
 
     class Remote : public NetworkNode{
         protected:
@@ -81,13 +81,13 @@ namespace RemoteRenderer{
             
             void syncTransforms(BinaryInput& packet);
             void sendFrame(uint batch_id);
-            void setBounds(uint y, uint height);
+            void setClip(uint y, uint height);
             void maybeRegisterConfig();
             
         public:
             Remote(RApp& app);
 
-            virtual void finsihedSetup() override;
+            virtual void finishedSetup() override;
             void receive();
-    }
+	};
 }
