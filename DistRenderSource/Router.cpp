@@ -81,6 +81,7 @@ bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
 
 void addRemote(NetAddress& addr){
 
+
     shared_ptr<NetConnection> conn = nullptr;
     if(!connect(addr, conn)) return;
 

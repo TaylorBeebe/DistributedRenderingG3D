@@ -5,7 +5,7 @@ using namespace G3D;
 
 namespace RemoteRenderer{
 
-    Client::Client() : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT, RApp& app) {}
+    Client::Client(RApp& app) : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT, app) {}
 
     void Client::checkNetwork(){
 
@@ -15,14 +15,14 @@ namespace RemoteRenderer{
 
         try{
 
-            G3D::BinaryInput& header = iter.headerBinaryInput();
+            BinaryInput& header = iter.headerBinaryInput();
             header.beginBits();
             uint batch_id = header.readUInt32();
 
             switch(iter.type()){
                 case PacketType::FRAME:
 
-                    shared_ptr<G3D::Image> frame = G3D::Image::fromBinaryInput(iter.binaryInput(), new ImageFormat::RGB8())
+					shared_ptr<G3D::Image> frame = Image::fromBinaryInput(iter.binaryInput(), new ImageFormat::RGB8());
 
                     // cache in frame buffer
 
@@ -65,11 +65,11 @@ namespace RemoteRenderer{
     void Client::sendTransforms(){
 
         current_batch_id++;
-        ms_to_deadline = 1000 / FRAMERATE;
+        ms_to_deadline = 1000 / Constants::FRAMERATE;
 
         // serialize 
-        G3D::BinaryOutput batch ();
-        batch.setEndian(G3D::G3DEndian::G3D_BIG_ENDIAN);
+        BinaryOutput batch ();
+        batch.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
         batch.beginBits();
 
@@ -82,13 +82,13 @@ namespace RemoteRenderer{
             float x,y,z,yaw,pitch,roll;
             ent->getFrame()->getXYZYPRRadians(x,y,z,yaw,pitch,roll);
 
-            bitstream.writeUInt32(it->first);
-            bitstream.writeFloat32(x);
-            bitstream.writeFloat32(y);
-            bitstream.writeFloat32(z);
-            bitstream.writeFloat32(yaw);
-            bitstream.writeFloat32(pitch);
-            bitstream.writeFloat32(roll);
+            batch.writeUInt32(it->first);
+			batch.writeFloat32(x);
+			batch.writeFloat32(y);
+			batch.writeFloat32(z);
+			batch.writeFloat32(yaw);
+			batch.writeFloat32(pitch);
+			batch.writeFloat32(roll);
 
         }
 
