@@ -7,10 +7,12 @@ using namespace G3D;
 namespace RemoteRenderer{
 
     // NODE CLASS
-    // defines behavior of a node on the network with hooks for sockets and the GApp
     class NetworkNode{
         protected:
             NodeType type; 
+
+            RApp& the_app;
+            // render device
 
             // Each entity in the scene will have a registered network ID
             // which will be synced across the network at setup so that at 
@@ -34,7 +36,7 @@ namespace RemoteRenderer{
             }
 
         public:
-            NetworkNode(NodeType t, NetAddress& router_address) : type(t) {
+            NetworkNode(NodeType t, NetAddress& router_address, RApp& app) : type(t), the_app(app) {
                 connection = NetConnection::connectToServer(router_address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
             }
 
@@ -48,10 +50,8 @@ namespace RemoteRenderer{
 
             bool isTypeOf(NodeType t){ return t == type; }
             bool isRunning() { return running; }
-            
-            // app hooks that will be called by the app
-            virtual void onUpdate() {}
-            virtual void onRender() {}
+
+            virtual void finishedSetup() {}
     }
 
     class Client : public NetworkNode{
@@ -60,12 +60,11 @@ namespace RemoteRenderer{
             float ms_to_deadline = 0;
 
             set<unsigned int> changed_entities;
-            NetMessageIterator iter;
 
             // frame cache
 
         public:
-            Client();
+            Client(RApp& app);
             
             void setEntityChanged(unsigned int id);
             void sendTransforms();
@@ -86,9 +85,9 @@ namespace RemoteRenderer{
             void maybeRegisterConfig();
             
         public:
-            Remote();
+            Remote(RApp& app);
 
-            void finsihedUpdate();
+            virtual void finsihedSetup() override;
             void receive();
     }
 }

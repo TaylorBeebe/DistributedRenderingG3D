@@ -4,7 +4,7 @@ using namespace RemoteRenderer;
 
 namespace RemoteRenderer{
 
-    Remote::Remote() : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE) {}
+    Remote::Remote() : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, RApp& app) {}
 
     void Remote::setBounds(uint y, uint height){
         bounds = G3D::Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
@@ -33,6 +33,7 @@ namespace RemoteRenderer{
                 switch(iter.type()){
                     case PacketType::TRANSFORM: // update data
                         syncTransforms(iter.binaryInput());
+                        the_app.oneFrameAdHoc();
                         sendFrame(batch_id);
                         break;
 
@@ -45,7 +46,7 @@ namespace RemoteRenderer{
                         bi.endBits();
 
                         setBounds(y, h);
-
+                        
                         received_screen_data = true;
                         maybeRegisterConfig();
 
@@ -107,7 +108,7 @@ namespace RemoteRenderer{
 
     void Remote::finishedSetup(){
         finished_setup = true;
-        maybeRespondHandshake();
+        maybeRegisterConfig();
     }
 
     void Remote::maybeRegisterConfig(){

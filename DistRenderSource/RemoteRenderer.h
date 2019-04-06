@@ -47,7 +47,6 @@ namespace RemoteRenderer{
         END
     }
 
-
     // Utils
     class BinaryUtils {
         public:
@@ -80,7 +79,7 @@ namespace RemoteRenderer{
                 bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
                 bo.beginBits();
-                bo.writeBits((uint) in.getCArray(), in.getLength());
+                bo.writeBits((uint) in.getCArray(), in.length());
                 bo.endBits();
 
                 return bo;

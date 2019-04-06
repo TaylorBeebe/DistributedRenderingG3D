@@ -5,11 +5,11 @@ using namespace G3D;
 
 namespace RemoteRenderer{
 
-    Client::Client() : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT) {
-        iter = connection->incomingMessageIterator();
-    }
+    Client::Client() : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT, RApp& app) {}
 
     void Client::checkNetwork(){
+
+        NetMessageIterator& iter = connection->incomingMessageIterator();
 
         if(!iter.isValid()) return;
 
