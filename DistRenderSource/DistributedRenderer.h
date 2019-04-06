@@ -5,7 +5,7 @@
 #include <list>
 #include <set>
 
-namespace RemoteRenderer{
+namespace DistributedRenderer{
 
     namespace Constants {
 

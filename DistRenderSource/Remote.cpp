@@ -1,8 +1,8 @@
 #include "Node.h"
 
-using namespace RemoteRenderer;
+using namespace DistributedRenderer;
 
-namespace RemoteRenderer{
+namespace DistributedRenderer{
 
     Remote::Remote(RApp& app) : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, app) {}
 

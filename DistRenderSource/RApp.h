@@ -1,9 +1,9 @@
-#include "RemoteRenderer.h"
+#include "DistributedRenderer.h"
 #include "Node.h"
 
-using namespace RemoteRenderer;
+using namespace DistributedRenderer;
 
-namespace RemoteRenderer {
+namespace DistributedRenderer {
 
     class RApp : public GApp {
         protected:

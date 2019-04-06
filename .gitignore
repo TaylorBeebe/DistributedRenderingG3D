@@ -46,6 +46,4 @@ shared/
 x64/
 log.txt
 
-!RemoteRenderer.h
-
 .DS_Store

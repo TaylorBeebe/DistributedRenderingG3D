@@ -1,10 +1,10 @@
 #pragma once
-#include "RemoteRenderer.h"
+#include "DistributedRenderer.h"
 
 using namespace G3D;
 
 // Abstract definitions for network nodes
-namespace RemoteRenderer{
+namespace DistributedRenderer{
 
     // NODE CLASS
     class NetworkNode{

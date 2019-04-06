@@ -5,7 +5,7 @@
 #include <time.h>
 #include <mutex>
 
-using namespace RemoteRenderer;
+using namespace DistributedRenderer;
 
 RApp::RApp(const GApp::Settings& settings, NodeType type){
 	// create a custom OSWindow

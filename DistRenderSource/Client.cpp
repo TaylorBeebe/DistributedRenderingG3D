@@ -2,8 +2,9 @@
 
 using namespace std;
 using namespace G3D;
+using namespace DistributedRenderer;
 
-namespace RemoteRenderer{
+namespace DistributedRenderer{
 
     Client::Client(RApp& app) : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT, app) {}
 

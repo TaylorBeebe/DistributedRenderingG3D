@@ -1,7 +1,7 @@
-#include "RemoteRenderer.h"
+#include "DistributedRenderer.h"
 
 using namespace std;
-using namespace RemoteRenderer;
+using namespace DistributedRenderer;
 
 /* =========================================
  * =========================================
