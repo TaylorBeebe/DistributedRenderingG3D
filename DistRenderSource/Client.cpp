@@ -36,7 +36,7 @@ namespace RemoteRenderer{
                     // start game tick
 
                     break;
-                case PacketType::END:
+                case PacketType::TERMINATE:
                     // clean up
                     break;
                 default: // Client does not need this datatype

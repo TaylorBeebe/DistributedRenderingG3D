@@ -75,19 +75,14 @@ namespace RemoteRenderer{
     class Remote : public NetworkNode{
         protected:
             Rect2D bounds; 
-
-            bool received_screen_data = false;
-            bool finished_setup = false;
             
             void syncTransforms(BinaryInput& packet);
             void sendFrame(uint batch_id);
             void setBounds(uint y, uint height);
-            void maybeRegisterConfig();
             
         public:
             Remote(RApp& app);
 
-            virtual void finsihedSetup() override;
             void receive();
     }
 }

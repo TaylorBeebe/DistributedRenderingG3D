@@ -6,7 +6,7 @@ namespace RemoteRenderer{
 
     Remote::Remote() : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, RApp& app) {}
 
-    void Remote::setBounds(uint y, uint height){
+    void Remote::setBounds(uint y, uint height) {
         bounds = Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
     }
 
@@ -42,15 +42,14 @@ namespace RemoteRenderer{
 
                     setBounds(y, h);
                     
-                    received_screen_data = true;
-                    maybeRegisterConfig();
+                    send(PacketType::CONFIG_RECEIPT);
 
                 case PacketType::READY: // client application will start, just chill
                     running = true;
                     break;
 
-                case PacketType::END: // this is the end of all messages
-                    // clean up
+                case PacketType::TERMINATE: // this is the end of all messages
+                    // clean up app
                     break;
 
                 default: // Remote Node does not need this datatype
@@ -100,16 +99,4 @@ namespace RemoteRenderer{
 
         // store it in packet and send it
     }
-
-    void Remote::finishedSetup(){
-        finished_setup = true;
-        maybeRegisterConfig();
-    }
-
-    void Remote::maybeRegisterConfig(){
-        if(received_screen_data && finished_setup){
-            send(PacketType::CONFIG_RECEIPT);
-        }
-    }
-
 }

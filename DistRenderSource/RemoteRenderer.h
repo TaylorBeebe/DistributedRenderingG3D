@@ -10,12 +10,12 @@ namespace RemoteRenderer{
     namespace Constants {
 
         // display
-        const uint FRAMERATE = 30;
+        const uint32 FRAMERATE = 30;
         
-        const uint SCREEN_WIDTH = 1920;
-        const uint SCREEN_HEIGHT = 1080;
+        const uint32 SCREEN_WIDTH = 1920;
+        const uint32 SCREEN_HEIGHT = 1080;
 
-        const uint PIXEL_BLEED = 100;
+        const uint32 PIXEL_BLEED = 100;
 
         // networking
         const bool COMPRESS_NETWORK_DATA = false;
@@ -44,7 +44,7 @@ namespace RemoteRenderer{
         CONFIG,
         CONFIG_RECEIPT
         READY,
-        END
+        TERMINATE
     }
 
     // Utils

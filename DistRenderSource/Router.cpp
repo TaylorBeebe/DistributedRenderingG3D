@@ -3,81 +3,88 @@
 using namespace std;
 using namespace RemoteRenderer;
 
-// =========================================
-// =========================================
-//            Router Implementation
-// =========================================
-// =========================================
-// 
-// A Router built on G3D NetConnections to service
-// a remote rendering distributed network
+/* =========================================
+ * =========================================
+ *            Router Implementation
+ * =========================================
+ * =========================================
+ * 
+ * A Router built on G3D NetConnections to service
+ * a remote rendering distributed network
+ * -----
+ *
+ * PROTCOL:
+ * 
+ * Upon starting, the server will establish connections with all
+ * specified remote nodes and the client application. Given valid
+ * connections, the router will calculate the screen fragments
+ * for each remote node and send a CONFIG packet with that info
+ * to each node respectively
+ *
+ * It is up to the remote nodes to respond with a CONFIG_RECEIPT
+ * packet asserting that the nodes successfully started their 
+ * applications and received the screen data. The router will 
+ * tally the responses, and when all are accounted for, the router
+ * signals the client to start by broadcasting a READY packet to 
+ * the network, also signalling the remote nodes to be ready
+ *
+ * On reception of a TRANSFORM packet, the router will reroute
+ * the packet to all remote nodes. If the current frame build
+ * is not complete, we can flush it and reset because that
+ * frame missed the deadline.
+ *
+ * On reception of a FRAGMENT packet, the router will add it 
+ * to the build buffer for the current frame. If the build 
+ * buffer is full, the router will send the finished frame
+ * to the client as a PNG.
+ */
 
 struct {
     bool configured;
-    uint id;
-    uint y;
-    uint h;
+    uint32 id;
+    uint32 y;
+    uint32 h;
     shared_ptr<NetConnection> connection;
 } remote_connection_t;
 
-// app is running
-bool running = false;
+// APP VARIABLES
+// ...
 
 // PIXELS
-uint current_batch;
-uint pieces = 0;
+uint32 current_batch;
+uint32 pieces = 0;
 // -- some pixel buffer
 
 
 // NETWORKING
-uint nonce = 0; // for basic, fast remote identifiers
-uint configurations = 0; // internal tally of configured remotes
+uint32 nonce = 0; // for basic, fast remote identifiers
+uint32 configurations = 0; // internal tally of configured remotes
 
 // registry of remote nodes
-map<uint, remote_connection_t*> remote_connection_registry;
+map<uint32, remote_connection_t*> remote_connection_registry;
 // the client connection
-shared_ptr<NetworkConnection> client;
+shared_ptr<NetworkConnection> client = nullptr;
 
-int main(){
+// =========================================
+//                  Setup
+// =========================================
 
-    // configure the router connections
-    setup();
-
-    // poll network for updates ad infintum
-    receive();
-
-    return 0;
+bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
+    // connect to the node and ensure it is valid, otherwise don't count this node as connected
+    conn = NetConnection::connectToServer(addr, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
+    uint32 deadline = 100 + currenttime;
+    while (conn.status() == NetworkStatus::WAITING_TO_CONNECT && currenttime < deadline) {}
+    if (conn.status() != NetworkStatus::JUST_CONNECTED) return false;
+    
+    return true;
 }
 
+void addRemote(NetAddress& addr){
 
-// set up all net connections 
-// after all connections are set up, we broadcast a config with screen info to all remote nodes,
-// they will not respond immediately but once their application is setup and they have received the 
-// screen data they will respond with their own config. The router will tally up the configs 
-// and when all configs are accounted for it will broadcast a ready message to everyone
-void setup(){
+    shared_ptr<NetConnection> conn = nullptr;
+    if(!connect(addr, conn)) return;
 
-    // this registry will track remote connections, addressable with IDs
-    remote_connection_registry();
-
-    // set up connections (in the future make this dynamic with a reference list or something)
-    addClient(Constants::CLIENT_ADDR);
-
-    addRemote(Constants::N1_ADDR);
-    addRemote(Constants::N2_ADDR);
-    addRemote(Constants::N3_ADDR);
-
-    // calculate screen data
-    configureScreenSplit();
-}
-
-void addClient(NetAddress& address){
-    client = NetConnection::connectToServer(address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
-}
-
-void addRemote(NetAddress& address){
-
-    uint id = nonce++;
+    uint32 id = nonce++;
 
     remote_connection_t* cv = new remote_connection_t();
     cv->id = id;
@@ -87,35 +94,27 @@ void addRemote(NetAddress& address){
     cv->y = 0;
     cv->h = 0;
 
-    cv->connection = NetConnection::connectToServer(address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
+    cv->connection = conn
     remote_connection_registry[id] = cv;
 }
 
-void removeRemote(NetAddress& address){
+void removeRemote(NetAddress& addr){
     // more complicated
 }
-
-// =========================================
-//              Frame Buffering
-// =========================================
-
-void flushPixelBuffer() {}
-
-void stitch(Image& fragment, uint x, uint y) {}
 
 void configureScreenSplit(){
     configurations = 0;
 
     // TODO: if the screen height is not perfectly divisble by the number of nodes, give the remaining pixels
     // to one of the nodes
-    uint frag_height = Constants::SCREEN_HEIGHT / remote_connection_registry.size(); 
-    uint curr_y = 0;
+    uint32 frag_height = Constants::SCREEN_HEIGHT / remote_connection_registry.size(); 
+    uint32 curr_y = 0;
 
-    map<uint, remote_connection_t*>::iterator iter;
+    map<uint32, remote_connection_t*>::iterator iter;
     for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
 
         // send the config data
-        BinaryOutput& config = BinaryUtils.toBinaryOutput( (uint[2]) {curr_y, frag_height} );
+        BinaryOutput& config = BinaryUtils.toBinaryOutput( (uint32[2]) {curr_y, frag_height} );
         cv->connection->send(PacketType::CONFIG, BinaryUtils.toBinaryOutput(0), config, 0);
 
         // store internal record
@@ -129,6 +128,14 @@ void configureScreenSplit(){
 }
 
 // =========================================
+//              Frame Buffering
+// =========================================
+
+void flushPixelBuffer() {}
+
+void stitch(Image& fragment, uint32 x, uint32 y) {}
+
+// =========================================
 //                Networking
 // =========================================
 
@@ -136,26 +143,39 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
     // optionally send to client
     if(include_client) client->send(t, body, header, 0);
 
-    map<uint, remote_connection_t*>::iterator iter;
+    map<uint32, remote_connection_t*>::iterator iter;
     for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
         iter->second->connection->send(t, body, header, 0);
     }
 }
 
-// This receive method will check for available messages as long as the running flag is set true,
+void terminate(){
+    broadcast(PacketType::TERMINATE, BinaryUtils.toBinaryOutput(0), BinaryUtils.toBinaryOutput(0), true);
+
+    client->disconnect(false);
+    map<uint32, remote_connection_t*>::iterator iter;
+    for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
+        iter->second->connection->disconnect(false);
+    }
+}
+
+// This receive method will check for available messages forever unless a connection is compromised,
 // it will check every connection in the remote connection registry and the client connection
 // then call whatever code is specified with that message type
 //
-// this will only work with packets that have a body AND a header
+// This will only work with packets that have a body AND a header
 void receive(){
 
-    map<uint, remote_connection_t*>::iterator remotes;
+    map<uint32, remote_connection_t*>::iterator remotes;
 
     NetMessageIterator iter;
     BinaryInput& header;
-    uint batch_id;
+    uint32 batch_id;
 
-    while(running){
+    while(true){
+
+        // TODO: make sure client is still connected
+        if (false) {}
 
         // listen to client
         for(iter = client->incomingMessageIterator(); iter.isValid(); iter++){
@@ -163,10 +183,10 @@ void receive(){
                 header = iter.headerBinaryInput();
                 header.beginBits();
 
-                batch_id = header.readUInt32();
+                batch_id = header.readuint3232();
 
                 switch(iter.type()){
-                    case PacketType::TRANSFORM:
+                    case PacketType::TRANSFORM: // frequent update from clients
 
                         // reset batch variables
                         current_batch = batch_id;
@@ -179,6 +199,9 @@ void receive(){
                                   BinaryUtils.toBinaryOutput(iter.binaryInput()), 
                                   false);
 
+                        break;
+                    case PacketType::TERMINATE: // the client wants to stop
+                        terminate();
                         break;
                     default: // don't need this
                 }
@@ -195,12 +218,15 @@ void receive(){
             remote_connection_t* conn_vars = remotes->second;
             shared_ptr<NetConnection> conn = conn_vars->connection;
 
+            // TODO: check if node is still connected
+            if (false) {}
+
             for(iter = conn->incomingMessageIterator(); iter.isValid(); iter++){
                 try {  
 
                     header = iter.headerBinaryInput();
                     header.beginBits();
-                    batch_id = header.readUInt32();
+                    batch_id = header.readuint3232();
 
                     switch(iter.type()){
                         case PacketType::TRANSFORM:
@@ -248,7 +274,6 @@ void receive(){
                             // if everyone is accounted for and running without error
                             // broadcast a ready message to every node and await the client's start
                             if(configurations == remote_connection_registry.size()){
-                                running = true;
                                 broadcast(PacketType::READY, BinaryUtils.toBinaryOutput(0), BinaryUtils.toBinaryOutput(0), true);
                             }
 
@@ -267,4 +292,29 @@ void receive(){
             } // end remote message loop
         } // end remote connection loop
     } // end main loop
+}
+
+int main(){
+    // this registry will track remote connections, addressable with IDs
+    remote_connection_registry();
+
+    // set up connections (in the future make this dynamic with a reference list or something)
+    addRemote(Constants::N1_ADDR);
+    addRemote(Constants::N2_ADDR);
+    addRemote(Constants::N3_ADDR);
+
+    // Attempt connection to client
+    // if the connection to the client is compromised or there are no remote node connections
+    // broadcast a terminate message
+    if(!connect(Constants::CLIENT_ADDR, client) || remote_connection_registry.size() == 0){
+        terminate();
+        return 0;
+    }
+
+    // calculate screen data
+    configureScreenSplit();
+    // poll network for updates ad infintum
+    receive(); 
+
+    return 0;
 }
