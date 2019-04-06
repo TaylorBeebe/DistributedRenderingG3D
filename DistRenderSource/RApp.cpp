@@ -40,6 +40,8 @@ void RApp::onRun(){
 	            oneFrame();
 	        } while (! m_endProgram); 
 	    }else{
+            // Busy wait for a message then do a render
+            // This can be improves in the future (and should be) with thread sleeping
 	    	do {
 	    		((Remote) network_node).receive();
 	    	} while (! m_endProgram);

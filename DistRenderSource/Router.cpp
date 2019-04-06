@@ -3,6 +3,15 @@
 using namespace std;
 using namespace RemoteRenderer;
 
+// =========================================
+// =========================================
+//            Router Implementation
+// =========================================
+// =========================================
+// 
+// A Router built on G3D NetConnections to service
+// a remote rendering distributed network
+
 struct {
     bool configured;
     uint id;
@@ -18,11 +27,8 @@ bool running = false;
 uint current_batch;
 uint pieces = 0;
 // -- some pixel buffer
-void flushPixelBuffer();
-void stitch(Image& fragment, uint x, uint y);
 
-void configureScreenSplit();
-    
+
 // NETWORKING
 uint nonce = 0; // for basic, fast remote identifiers
 uint configurations = 0; // internal tally of configured remotes
@@ -31,14 +37,6 @@ uint configurations = 0; // internal tally of configured remotes
 map<uint, remote_connection_t*> remote_connection_registry;
 // the client connection
 shared_ptr<NetworkConnection> client;
-
-
-// =========================================
-// =========================================
-//            Router Implementation
-// =========================================
-// =========================================
-
 
 int main(){
 
@@ -97,20 +95,20 @@ void removeRemote(NetAddress& address){
     // more complicated
 }
 
-void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client){
+// =========================================
+//              Frame Buffering
+// =========================================
 
-    if(include_client) client->send(t, body, header, 0);
+void flushPixelBuffer() {}
 
-    map<uint, remote_connection_t*>::iterator iter;
-    for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
-        iter->second->connection->send(t, body, header, 0);
-    }
-}
+void stitch(Image& fragment, uint x, uint y) {}
 
 void configureScreenSplit(){
     configurations = 0;
 
-    uint frag_height = Constants::SCREEN_WIDTH / remote_connection_registry.size();
+    // TODO: if the screen height is not perfectly divisble by the number of nodes, give the remaining pixels
+    // to one of the nodes
+    uint frag_height = Constants::SCREEN_HEIGHT / remote_connection_registry.size(); 
     uint curr_y = 0;
 
     map<uint, remote_connection_t*>::iterator iter;
@@ -130,6 +128,19 @@ void configureScreenSplit(){
     }
 }
 
+// =========================================
+//                Networking
+// =========================================
+
+void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client){
+    // optionally send to client
+    if(include_client) client->send(t, body, header, 0);
+
+    map<uint, remote_connection_t*>::iterator iter;
+    for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
+        iter->second->connection->send(t, body, header, 0);
+    }
+}
 
 // This receive method will check for available messages as long as the running flag is set true,
 // it will check every connection in the remote connection registry and the client connection

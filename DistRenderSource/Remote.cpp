@@ -7,71 +7,66 @@ namespace RemoteRenderer{
     Remote::Remote() : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, RApp& app) {}
 
     void Remote::setBounds(uint y, uint height){
-        bounds = G3D::Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
+        bounds = Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
     }
 
-    // continuosly listen for updates and render them accordingly
     void Remote::receive() {
 
         G3D::NetMessageIterator& iter = connection->incomingMessageIterator();
-
-        G3D::BinaryInput& header;
+        G3D::BinaryInput header;
         uint batch_id;
 
-        while(1){
-            // busy wait until there's a message (room for opitimization with thread sleeping but only with a custom networking model)
-            // network listeners run on a separate network thread and will add to the iter queue in a threadsafe fashion
-            if(!iter.isValid()) continue;
-            
-            try{
-                // read the header
-                header = iter.headerBinaryInput();
-                header.beginBits();
+        if(!iter.isValid()) continue;
+        
+        try{
+            // read the header
+            header = iter.headerBinaryInput();
+            header.beginBits();
 
-                batch_id = header.readUInt32();
+            batch_id = header.readUInt32();
 
-                switch(iter.type()){
-                    case PacketType::TRANSFORM: // update data
-                        syncTransforms(iter.binaryInput());
-                        the_app.oneFrameAdHoc();
-                        sendFrame(batch_id);
-                        break;
+            switch(iter.type()){
+                case PacketType::TRANSFORM: // update data
+                    syncTransforms(iter.binaryInput());
+                    the_app.oneFrameAdHoc();
+                    sendFrame(batch_id);
+                    break;
 
-                    case PacketType::CONFIG: // router delivers the dimension data for this node and awaits reply
-                        // unpack screen data
-                        BinaryInput& bi = iter.binaryInput();
-                        bi.beginBits();
-                        uint y = bi.readUInt32();
-                        uint h = bi.readUInt32();
-                        bi.endBits();
+                case PacketType::CONFIG: // router delivers the dimension data for this node and awaits reply
+                    // unpack screen data
+                    BinaryInput& bi = iter.binaryInput();
+                    bi.beginBits();
+                    uint y = bi.readUInt32();
+                    uint h = bi.readUInt32();
+                    bi.endBits();
 
-                        setBounds(y, h);
-                        
-                        received_screen_data = true;
-                        maybeRegisterConfig();
+                    setBounds(y, h);
+                    
+                    received_screen_data = true;
+                    maybeRegisterConfig();
 
-                    case PacketType::READY: // client application will start, just chill
-                        running = true;
-                        break;
+                case PacketType::READY: // client application will start, just chill
+                    running = true;
+                    break;
 
-                    case PacketType::END: // this is the end of all messages
-                        // clean up
-                        break;
+                case PacketType::END: // this is the end of all messages
+                    // clean up
+                    break;
 
-                    default: // Remote Node does not need this datatype
-                        debugPrintf("Remote Node received incompatible packet type\n");
+                default: // Remote Node does not need this datatype
+                    debugPrintf("Remote Node received incompatible packet type\n");
 
-                } // end switch
+            } // end switch
 
-                header.endBits();
+            header.endBits();
 
-            } catch(...) { // something went wrong decoding the message
-                // handle error or do nothing
-            }
-
-            // pop the message off of the queue
-            ++iter;
+        } catch(...) { // something went wrong decoding the message
+            // handle error or do nothing
         }
+
+        // pop the message off of the queue
+        ++iter;
+        
     }
 
     // @pre: transform packet with list of transforms of entities to update
