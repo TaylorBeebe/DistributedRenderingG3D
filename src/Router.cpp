@@ -2,6 +2,7 @@
 
 using namespace std;
 using namespace DistributedRenderer;
+using namespace G3D;
 
 /* =========================================
  * =========================================
@@ -26,7 +27,7 @@ using namespace DistributedRenderer;
  * applications and received the screen data. The router will 
  * tally the responses, and when all are accounted for, the router
  * signals the client to start by broadcasting a READY packet to 
- * the network, also signalling the remote nodes to be ready
+ * the network, also signalling the remote nodes
  *
  * On reception of a TRANSFORM packet, the router will reroute
  * the packet to all remote nodes. If the current frame build
@@ -69,18 +70,7 @@ shared_ptr<NetworkConnection> client = nullptr;
 //                  Setup
 // =========================================
 
-bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
-    // connect to the node and ensure it is valid, otherwise don't count this node as connected
-    conn = NetConnection::connectToServer(addr, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
-    uint32 deadline = 100 + currenttime;
-    while (conn.status() == NetworkStatus::WAITING_TO_CONNECT && currenttime < deadline) {}
-    if (conn.status() != NetworkStatus::JUST_CONNECTED) return false;
-    
-    return true;
-}
-
 void addRemote(NetAddress& addr){
-
 
     shared_ptr<NetConnection> conn = nullptr;
     if(!connect(addr, conn)) return;
@@ -187,7 +177,7 @@ void receive(){
                 batch_id = header.readuint3232();
 
                 switch(iter.type()){
-                    case PacketType::TRANSFORM: // frequent update from clients
+                    case PacketType::UPDATE: // frequent update from clients
 
                         // reset batch variables
                         current_batch = batch_id;
@@ -195,7 +185,7 @@ void receive(){
                         pieces = 0;
                     
                         // route transform data to all remotes
-                        broadcast(PacketType::TRANSFORM, 
+                        broadcast(PacketType::UPDATE, 
                                   BinaryUtils.toBinaryOutput(header), 
                                   BinaryUtils.toBinaryOutput(iter.binaryInput()), 
                                   false);
@@ -230,18 +220,6 @@ void receive(){
                     batch_id = header.readuint3232();
 
                     switch(iter.type()){
-                        case PacketType::TRANSFORM:
-
-                            // reset batch variables
-                            current_batch = batch_id;
-                            flushPixelBuffer();
-                            pieces = 0;
-                        
-                            // reroute transform data to all remotes
-                            broadcast(PacketType::TRANSFORM, BinaryUtils.toBinaryOutput(header), BinaryUtils.toBinaryOutput(iter.binaryInput()), false);
-
-                            break;
-
                         case PacketType::FRAGMENT:
 
                             // old frag, toss out

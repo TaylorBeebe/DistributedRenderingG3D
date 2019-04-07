@@ -18,6 +18,7 @@ namespace DistributedRenderer{
         const uint32 PIXEL_BLEED = 100;
 
         // networking
+        const RealTime CONNECTION_WAIT = 10;
         const bool COMPRESS_NETWORK_DATA = false;
 
         const uint16 RPORT = 1100;
@@ -38,16 +39,28 @@ namespace DistributedRenderer{
 
     // Supported network packet types
     enum PacketType {
-        TRANSFORM,
+        UPDATE,
         FRAME,
         FRAGMENT,
         CONFIG,
         CONFIG_RECEIPT
         READY,
         TERMINATE
+    };
+
+    // =========================================
+    //                   Utils
+    // =========================================
+
+    // wait on a connection
+    bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
+        conn = NetConnection::connectToServer(addr, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
+        RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
+        while (conn->status() == NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
+        return conn->status() == NetworkStatus::JUST_CONNECTED;
     }
 
-    // Utils
+    // easy conversion of data types to BinaryOutputs
     class BinaryUtils {
         public:
             static BinaryOutput& toBinaryOutput(uint i) {

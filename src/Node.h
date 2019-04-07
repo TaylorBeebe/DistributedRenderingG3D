@@ -37,13 +37,13 @@ namespace DistributedRenderer{
 
         public:
             NetworkNode(NodeType t, NetAddress& router_address, RApp& app) : type(t), the_app(app) {
-                connection = NetConnection::connectToServer(router_address, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
+                if(!connect(router_address, connection)) return; // something bad happened, TODO: end program
             }
 
             // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)
             // @post: creates network ID for entity and stores reference to it
             // @returns: network ID of entity 
-            uint registerEntity(Entity* e){
+            uint32 registerEntity(Entity* e){
                 entityRegistry[net_nonce] = e;
                 return net_nonce++;
             } 
@@ -74,6 +74,7 @@ namespace DistributedRenderer{
 
     class Remote : public NetworkNode{
         protected:
+            bool headless;
             Rect2D bounds; 
             
             void syncTransforms(BinaryInput& packet);
@@ -82,7 +83,7 @@ namespace DistributedRenderer{
             void setClip(uint y, uint height);
             
         public:
-            Remote(RApp& app);
+            Remote(RApp& app, bool h);
             void receive();
 	};
 }

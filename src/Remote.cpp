@@ -4,7 +4,7 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Remote::Remote(RApp& app) : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, app) {}
+    Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, app), headless(headless_mode) {}
 
 
     void Remote::setClip(uint y, uint height){
@@ -27,9 +27,9 @@ namespace DistributedRenderer{
             batch_id = header.readUInt32();
 
             switch(iter.type()){
-                case PacketType::TRANSFORM: // update data
-                    syncTransforms(iter.binaryInput());
-                    the_app.oneFrameAdHoc();
+                case PacketType::UPDATE: // update data
+                    sync(iter.binaryInput());
+                    // the_app.oneFrameAdHoc();
                     sendFrame(batch_id);
                     break;
 
@@ -71,22 +71,22 @@ namespace DistributedRenderer{
 
     // @pre: transform packet with list of transforms of entities to update
     // @post: updates frame of corresponding entity with new position data
-    void Remote::syncTransforms(BinaryInput& transforms){
-        transforms.beginBits();
+    void Remote::sync(BinaryInput& update){
+        update.beginBits();
 
-        while(transforms.hasMore()){
-            uint id = transforms.readUInt32();
-            float x = transforms.readFloat32();
-            float y = transforms.readFloat32();
-            float z = transforms.readFloat32();
-            float yaw = transforms.readFloat32();
-            float pitch = transforms.readFloat32();
-            float roll = transforms.readFloat32();
+        while(update.hasMore()){
+            uint id = update.readUInt32();
+            float x = update.readFloat32();
+            float y = update.readFloat32();
+            float z = update.readFloat32();
+            float yaw = update.readFloat32();
+            float pitch = update.readFloat32();
+            float roll = update.readFloat32();
 
             entityRegistry[id]->getframe()->fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
         }
 
-        transforms.endBits();
+        update.endBits();
     }
 
     // @pre: the current batch id
