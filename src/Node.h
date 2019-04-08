@@ -2,6 +2,8 @@
 #include "DistributedRenderer.h"
 
 using namespace G3D;
+using namespace DistributedRenderer;
+using namespace std;
 
 // Abstract definitions for network nodes
 namespace DistributedRenderer{
@@ -12,12 +14,12 @@ namespace DistributedRenderer{
             NodeType type; 
 
             RApp& the_app;
-            // render device
+            // <- render device
 
             // Each entity in the scene will have a registered network ID
             // which will be synced across the network at setup so that at 
             // runtime transform data can be synced 
-            map<unsigned int, Entity*> entityRegistry;
+            map<uint32, Entity*> entityRegistry;
 
             // maybe use a unique id later
             uint net_nonce = 0;
@@ -32,7 +34,7 @@ namespace DistributedRenderer{
 
             // send empty packet with type
             void send(PacketType t){
-                connection->send(t, serializeUInt(0), serializeUInt(0), 0);
+                connection->send(t, BinaryUtils.empty(), BinaryUtils.empty(), 0);
             }
 
         public:
@@ -77,7 +79,7 @@ namespace DistributedRenderer{
             bool headless;
             Rect2D bounds; 
             
-            void syncTransforms(BinaryInput& packet);
+            void sync(BinaryInput& update);
             void sendFrame(uint batch_id);
 
             void setClip(uint y, uint height);
@@ -85,5 +87,6 @@ namespace DistributedRenderer{
         public:
             Remote(RApp& app, bool h);
             void receive();
+			bool isHeadless() { return headless; }
 	};
 }

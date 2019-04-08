@@ -6,12 +6,13 @@ using namespace G3D;
 
 /* =========================================
  * =========================================
- *            Router Implementation
+ *            Distributed Router
  * =========================================
  * =========================================
  * 
  * A Router built on G3D NetConnections to service
  * a remote rendering distributed network
+ *
  * -----
  *
  * PROTCOL:
@@ -35,12 +36,12 @@ using namespace G3D;
  * frame missed the deadline.
  *
  * On reception of a FRAGMENT packet, the router will add it 
- * to the build buffer for the current frame. If the build 
- * buffer is full, the router will send the finished frame
+ * to the build buffer for the current frame. If this makes the 
+ * build buffer is full, the router will send the finished frame
  * to the client as a PNG.
  */
 
-struct {
+typedef struct {
     bool configured;
     uint32 id;
     uint32 y;
@@ -56,7 +57,6 @@ uint32 current_batch;
 uint32 pieces = 0;
 // -- some pixel buffer
 
-
 // NETWORKING
 uint32 nonce = 0; // for basic, fast remote identifiers
 uint32 configurations = 0; // internal tally of configured remotes
@@ -64,7 +64,7 @@ uint32 configurations = 0; // internal tally of configured remotes
 // registry of remote nodes
 map<uint32, remote_connection_t*> remote_connection_registry;
 // the client connection
-shared_ptr<NetworkConnection> client = nullptr;
+shared_ptr<NetConnection> client = nullptr;
 
 // =========================================
 //                  Setup
@@ -81,7 +81,7 @@ void addRemote(NetAddress& addr){
     cv->id = id;
     cv->configured = false;
 
-    // figure out later
+    // default
     cv->y = 0;
     cv->h = 0;
 
@@ -106,7 +106,7 @@ void configureScreenSplit(){
 
         // send the config data
         BinaryOutput& config = BinaryUtils.toBinaryOutput( (uint32[2]) {curr_y, frag_height} );
-        cv->connection->send(PacketType::CONFIG, BinaryUtils.toBinaryOutput(0), config, 0);
+        cv->connection->send(PacketType::CONFIG, BinaryUtils.empty(), config, 0);
 
         // store internal record
         remote_connection_t* cv = iter->second;
@@ -141,7 +141,7 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
 }
 
 void terminate(){
-    broadcast(PacketType::TERMINATE, BinaryUtils.toBinaryOutput(0), BinaryUtils.toBinaryOutput(0), true);
+    broadcast(PacketType::TERMINATE, BinaryUtils.empty(), BinaryUtils.empty(), true);
 
     client->disconnect(false);
     map<uint32, remote_connection_t*>::iterator iter;
@@ -253,7 +253,7 @@ void receive(){
                             // if everyone is accounted for and running without error
                             // broadcast a ready message to every node and await the client's start
                             if(configurations == remote_connection_registry.size()){
-                                broadcast(PacketType::READY, BinaryUtils.toBinaryOutput(0), BinaryUtils.toBinaryOutput(0), true);
+                                broadcast(PacketType::READY, BinaryUtils.empty(), BinaryUtils.empty(), true);
                             }
 
                             break;

@@ -43,7 +43,7 @@ namespace DistributedRenderer{
         FRAME,
         FRAGMENT,
         CONFIG,
-        CONFIG_RECEIPT
+        CONFIG_RECEIPT,
         READY,
         TERMINATE
     };
@@ -60,9 +60,19 @@ namespace DistributedRenderer{
         return conn->status() == NetworkStatus::JUST_CONNECTED;
     }
 
+	class RApp {
+		public:
+			int a = 1;
+	};
+
     // easy conversion of data types to BinaryOutputs
     class BinaryUtils {
         public:
+				
+			static BinaryOutput& empty() {
+				return toBinaryOutput(0);
+			}
+
             static BinaryOutput& toBinaryOutput(uint i) {
                 BinaryOutput bo ();
                 bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
@@ -77,6 +87,8 @@ namespace DistributedRenderer{
             static BinaryOutput& toBinaryOutput(uint list[]) {
                 BinaryOutput bo ();
                 bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+
+				bo.beginBits();
 
                 for(uint i : list){
                     bo.writeUInt32(i);

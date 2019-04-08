@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DistRenderSource\Client.cpp" />
-    <ClCompile Include="DistRenderSource\Remote.cpp" />
-    <ClCompile Include="DistRenderSource\Router.cpp" />
+    <ClCompile Include="src\Client.cpp" />
+    <ClCompile Include="src\Remote.cpp" />
+    <ClCompile Include="src\Router.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DistRenderSource\Node.h" />
-    <ClInclude Include="DistRenderSource\RemoteRenderer.h" />
+    <ClInclude Include="src\DistributedRenderer.h" />
+    <ClInclude Include="src\Node.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
