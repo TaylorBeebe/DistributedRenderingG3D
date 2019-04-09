@@ -31,12 +31,12 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DistRenderSource\Nodes\server_.cpp">
+    <ClCompile Include="DistRenderSource\ServerSide\serverTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DistRenderSource\Nodes\server_.h">
+    <ClInclude Include="DistRenderSource\ServerSide\serverTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

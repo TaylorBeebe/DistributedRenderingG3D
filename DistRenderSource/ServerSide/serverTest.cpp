@@ -1,7 +1,7 @@
 /** \file Server.cpp
 
 */
-#include "Server.h"
+#include "serverTest.h"
 #include <time.h>
 #include <mutex>
 
@@ -202,7 +202,6 @@ void App::onGraphics2D(RenderDevice* rd, Array<shared_ptr<Surface2D> >& posed2D)
 			y += m_font->draw2D(rd, socket->clientAddress.toString(), Vector2(400, y), 12, Color3::white(), Color3::black()).y + 5;
 		}
 	}
-
 
 	// Render 2D objects like Widgets.  These do not receive tone mapping or gamma correction.
 	Surface2D::sortAndRender(rd, posed2D);
