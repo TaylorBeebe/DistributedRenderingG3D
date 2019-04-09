@@ -2,7 +2,6 @@
 #include "DistributedRenderer.h"
 
 using namespace G3D;
-using namespace DistributedRenderer;
 using namespace std;
 
 // Abstract definitions for network nodes
@@ -12,6 +11,8 @@ namespace DistributedRenderer{
     class NetworkNode{
         protected:
             NodeType type; 
+
+			bool headless;
 
             RApp& the_app;
             // <- render device
@@ -34,11 +35,11 @@ namespace DistributedRenderer{
 
             // send empty packet with type
             void send(PacketType t){
-                connection->send(t, BinaryUtils.empty(), BinaryUtils.empty(), 0);
+                connection->send(t, BinaryUtils::empty(), BinaryUtils::empty(), 0);
             }
 
         public:
-            NetworkNode(NodeType t, NetAddress& router_address, RApp& app) : type(t), the_app(app) {
+            NetworkNode(NodeType t, NetAddress& router_address, RApp& app, bool head) : type(t), the_app(app), headless(head) {
                 if(!connect(router_address, connection)) return; // something bad happened, TODO: end program
             }
 
@@ -52,6 +53,7 @@ namespace DistributedRenderer{
 
             bool isTypeOf(NodeType t){ return t == type; }
             bool isRunning() { return running; }
+			bool isHeadless() { return headless; }
 
             virtual void finishedSetup() {}
 	};
@@ -68,25 +70,24 @@ namespace DistributedRenderer{
         public:
             Client(RApp& app);
             
-            void setEntityChanged(unsigned int id);
-            void sendTransforms();
+            void setEntityChanged(uint32 id);
+            void sendUpdate();
 
             void checkNetwork();
 	};
 
     class Remote : public NetworkNode{
         protected:
-            bool headless;
             Rect2D bounds; 
             
             void sync(BinaryInput& update);
-            void sendFrame(uint batch_id);
+            void sendFrame(uint32 batch_id);
 
-            void setClip(uint y, uint height);
+			void setClip(BinaryInput& bi);
+            void setClip(uint32 y, uint32 height);
             
         public:
             Remote(RApp& app, bool h);
             void receive();
-			bool isHeadless() { return headless; }
 	};
 }

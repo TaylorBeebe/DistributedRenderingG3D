@@ -6,7 +6,7 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Client::Client(RApp& app) : NetworkNode(Constants::ROUTER_ADDR, NodeType::CLIENT, app) {}
+    Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, Constants::ROUTER_ADDR, app, false) {}
 
     void Client::checkNetwork(){
 
@@ -18,12 +18,14 @@ namespace DistributedRenderer{
 
             BinaryInput& header = iter.headerBinaryInput();
             header.beginBits();
-            uint batch_id = header.readUInt32();
+            uint32 batch_id = header.readUInt32();
+
+			shared_ptr<Image> frame;
 
             switch(iter.type()){
                 case PacketType::FRAME:
 
-					shared_ptr<G3D::Image> frame = Image::fromBinaryInput(iter.binaryInput(), new ImageFormat::RGB8());
+					frame = Image::fromBinaryInput(iter.binaryInput(), ImageFormat::RGB8());
 
                     // cache in frame buffer
 
@@ -54,23 +56,22 @@ namespace DistributedRenderer{
         ++iter;
     }
 
-    // @pre: registered ID of an entity
-    // @post: marks that entity as changed
-    void Client::setEntityChanged(unsigned int id){
+    // Use this method to mark an entity to be updated on the network
+    void Client::setEntityChanged(uint32 id){
         // safety check
         changed_entities.insert(id);
     }
 
-    // @pre: expects a deadline in ms that will be used as reference by the network
-    // @post: sends updated entity data on the network with corresponding job ID and deadline
-    void Client::sendTransforms(){
+	// send an update on the network with a batch ID
+	// the processed batch frame will need to return by the next deadline
+	// or else the client will use a low qual render instead
+    void Client::sendUpdate(){
 
         current_batch_id++;
         ms_to_deadline = 1000 / Constants::FRAMERATE;
 
         // serialize 
-        BinaryOutput batch ();
-        batch.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+        BinaryOutput& batch = BinaryUtils::empty();
 
         batch.beginBits();
 
@@ -78,10 +79,10 @@ namespace DistributedRenderer{
         // this is inefficient and should be improved such that we only iterate through a 
         // set of ids that were changed
         for (map<unsigned int, Entity*>::iterator it = entityRegistry.begin(); it!=entityRegistry.end(); ++it){
-            Enitity* ent = it->second;
+            Entity* ent = it->second;
 
             float x,y,z,yaw,pitch,roll;
-            ent->getFrame()->getXYZYPRRadians(x,y,z,yaw,pitch,roll);
+            ent->frame().getXYZYPRRadians(x,y,z,yaw,pitch,roll);
 
             batch.writeUInt32(it->first);
 			batch.writeFloat32(x);
@@ -96,7 +97,7 @@ namespace DistributedRenderer{
         batch.endBits();
 
         // net message send batch to router ip
-        send(PacketType::UPDATE, BinaryUtils.toBinaryOutput(current_batch_id), batch);
+        send(PacketType::UPDATE, BinaryUtils::toBinaryOutput(current_batch_id), batch);
 
         // clear recently used
         // changed_entities.erase();

@@ -1,27 +1,32 @@
 #include "Node.h"
 
-using namespace DistributedRenderer;
-
 namespace DistributedRenderer{
 
-    Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(Constants::ROUTER_ADDR, NodeType::REMOTE, app), headless(headless_mode) {}
+    Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, Constants::ROUTER_ADDR, app, headless_mode) {}
 
-
-    void Remote::setClip(uint y, uint height){
-        bounds = Rect2D::xywh(0,y,Constants::SCREEN_WIDTH,height);
+    void Remote::setClip(uint32 y, uint32 height){
+        bounds = Rect2D::xywh(0, y, Constants::SCREEN_WIDTH, height);
     }
+
+	void Remote::setClip(BinaryInput& bi) {
+		bi.beginBits();
+		uint32 y = bi.readUInt32();
+		uint32 h = bi.readUInt32();
+		bi.endBits();
+
+		setClip(y, h);
+	}
 
     void Remote::receive() {
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
-        BinaryInput header;
         uint batch_id;
 
         if(!iter.isValid()) return;
         
         try{
             // read the header
-            header = iter.headerBinaryInput();
+            BinaryInput& header = iter.headerBinaryInput();
             header.beginBits();
 
             batch_id = header.readUInt32();
@@ -35,14 +40,7 @@ namespace DistributedRenderer{
 
                 case PacketType::CONFIG: // router delivers the dimension data for this node and awaits reply
                     // unpack screen data
-                    BinaryInput& bi = iter.binaryInput();
-                    bi.beginBits();
-                    uint y = bi.readUInt32();
-                    uint h = bi.readUInt32();
-                    bi.endBits();
-
-                    setBounds(y, h);
-                    
+					setClip(iter.binaryInput());
                     send(PacketType::CONFIG_RECEIPT);
 
                 case PacketType::READY: // client application will start, just chill
@@ -83,7 +81,7 @@ namespace DistributedRenderer{
             float pitch = update.readFloat32();
             float roll = update.readFloat32();
 
-            entityRegistry[id]->getframe()->fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
+            entityRegistry[id]->frame().fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
         }
 
         update.endBits();
@@ -91,7 +89,7 @@ namespace DistributedRenderer{
 
     // @pre: the current batch id
     // @post: renders a new frame and sends it in a frame packet back to the router
-    void Remote::sendFrame(uint batch_id){
+    void Remote::sendFrame(uint32 batch_id){
 
         // maybe spawn a new thread to do it async and if another packet comes in stop
         // that thread and spawn a new one

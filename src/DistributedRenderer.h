@@ -5,30 +5,32 @@
 #include <list>
 #include <set>
 
+using namespace G3D;
+
 namespace DistributedRenderer{
 
     namespace Constants {
 
         // display
-        const uint32 FRAMERATE = 30;
+        static const uint32 FRAMERATE = 30;
         
-        const uint32 SCREEN_WIDTH = 1920;
-        const uint32 SCREEN_HEIGHT = 1080;
+        static const uint32 SCREEN_WIDTH = 1920;
+        static const uint32 SCREEN_HEIGHT = 1080;
 
-        const uint32 PIXEL_BLEED = 100;
+        static const uint32 PIXEL_BLEED = 100;
 
         // networking
-        const RealTime CONNECTION_WAIT = 10;
-        const bool COMPRESS_NETWORK_DATA = false;
+        static const RealTime CONNECTION_WAIT = 10;
+        static const bool COMPRESS_NETWORK_DATA = false;
 
-        const uint16 RPORT = 1100;
-        const uint16 APORT = 9000;
+        static const uint16 RPORT = 1100;
+        static const uint16 APORT = 9000;
 
-        const NetAddress ROUTER_ADDR (101010101, RPORT);
-        const NetAddress CLIENT_ADDR (101010101, APORT);
-        const NetAddress N1_ADDR (101010101, APORT);
-        const NetAddress N2_ADDR (101010101, APORT);
-        const NetAddress N3_ADDR (101010101, APORT);
+        static NetAddress ROUTER_ADDR (101010101, RPORT);
+        static NetAddress CLIENT_ADDR (101010101, APORT);
+        static NetAddress N1_ADDR (101010101, APORT);
+        static NetAddress N2_ADDR (101010101, APORT);
+        static NetAddress N3_ADDR (101010101, APORT);
 
     }
 
@@ -53,11 +55,11 @@ namespace DistributedRenderer{
     // =========================================
 
     // wait on a connection
-    bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
-        conn = NetConnection::connectToServer(addr, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
+    static bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
+        conn = NetConnection::connectToServer(addr, 1, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
         RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
-        while (conn->status() == NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
-        return conn->status() == NetworkStatus::JUST_CONNECTED;
+        while (conn->status() == NetConnection::NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
+        return conn->status() == NetConnection::NetworkStatus::JUST_CONNECTED;
     }
 
 	class RApp {
@@ -70,12 +72,11 @@ namespace DistributedRenderer{
         public:
 				
 			static BinaryOutput& empty() {
-				return toBinaryOutput(0);
+				return BinaryUtils::toBinaryOutput((uint32) 0);
 			}
 
-            static BinaryOutput& toBinaryOutput(uint i) {
-                BinaryOutput bo ();
-                bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+            static BinaryOutput& toBinaryOutput(uint32 i) {
+                BinaryOutput bo ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
                 bo.beginBits();
                 bo.writeUInt32(i);
@@ -84,27 +85,26 @@ namespace DistributedRenderer{
                 return bo;
             }
 
-            static BinaryOutput& toBinaryOutput(uint list[]) {
-                BinaryOutput bo ();
+            static BinaryOutput& toBinaryOutput(uint32 list[]) {
+				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);;
                 bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
 				bo.beginBits();
 
-                for(uint i : list){
-                    bo.writeUInt32(i);
-                }
-
+				int length = sizeof(list) / sizeof(uint32);
+				for (int i = 0; i < length; i++) bo.writeUInt32(list[i]);
+                
                 bo.endBits();
 
                 return bo;
             }
 
             static BinaryOutput& toBinaryOutput(BinaryInput& in) {
-                BinaryOutput bo ();
+				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
                 bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
                 bo.beginBits();
-                bo.writeBits((uint) in.getCArray(), in.length());
+                bo.writeBits((uint32) in.getCArray(), in.getLength());
                 bo.endBits();
 
                 return bo;

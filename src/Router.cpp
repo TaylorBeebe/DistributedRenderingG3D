@@ -61,7 +61,7 @@ uint32 pieces = 0;
 uint32 nonce = 0; // for basic, fast remote identifiers
 uint32 configurations = 0; // internal tally of configured remotes
 
-// registry of remote nodes
+// this registry will track remote connections, addressable with IDs
 map<uint32, remote_connection_t*> remote_connection_registry;
 // the client connection
 shared_ptr<NetConnection> client = nullptr;
@@ -85,8 +85,8 @@ void addRemote(NetAddress& addr){
     cv->y = 0;
     cv->h = 0;
 
-    cv->connection = conn
-    remote_connection_registry[id] = cv;
+	cv->connection = conn;
+	remote_connection_registry[id] = cv;
 }
 
 void removeRemote(NetAddress& addr){
@@ -104,13 +104,14 @@ void configureScreenSplit(){
     map<uint32, remote_connection_t*>::iterator iter;
     for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
 
+		remote_connection_t* cv = iter->second;
+
         // send the config data
-        BinaryOutput& config = BinaryUtils.toBinaryOutput( (uint32[2]) {curr_y, frag_height} );
-        cv->connection->send(PacketType::CONFIG, BinaryUtils.empty(), config, 0);
+		uint32 conf_attrs[] = { curr_y, frag_height };
+        BinaryOutput& config = BinaryUtils::toBinaryOutput( conf_attrs );
+        cv->connection->send(PacketType::CONFIG, BinaryUtils::empty(), config, 0);
 
         // store internal record
-        remote_connection_t* cv = iter->second;
-
         cv->y = curr_y;
         cv->h = frag_height;
 
@@ -141,7 +142,7 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
 }
 
 void terminate(){
-    broadcast(PacketType::TERMINATE, BinaryUtils.empty(), BinaryUtils.empty(), true);
+    broadcast(PacketType::TERMINATE, BinaryUtils::empty(), BinaryUtils::empty(), true);
 
     client->disconnect(false);
     map<uint32, remote_connection_t*>::iterator iter;
@@ -159,9 +160,7 @@ void receive(){
 
     map<uint32, remote_connection_t*>::iterator remotes;
 
-    NetMessageIterator iter;
-    BinaryInput& header;
-    uint32 batch_id;
+	uint32 batch_id;
 
     while(true){
 
@@ -169,12 +168,12 @@ void receive(){
         if (false) {}
 
         // listen to client
-        for(iter = client->incomingMessageIterator(); iter.isValid(); iter++){
+        for(NetMessageIterator iter = client->incomingMessageIterator(); iter.isValid(); ++iter){
             try {
-                header = iter.headerBinaryInput();
+				BinaryInput& header = iter.headerBinaryInput();
                 header.beginBits();
 
-                batch_id = header.readuint3232();
+                batch_id = header.readUInt32();
 
                 switch(iter.type()){
                     case PacketType::UPDATE: // frequent update from clients
@@ -186,8 +185,8 @@ void receive(){
                     
                         // route transform data to all remotes
                         broadcast(PacketType::UPDATE, 
-                                  BinaryUtils.toBinaryOutput(header), 
-                                  BinaryUtils.toBinaryOutput(iter.binaryInput()), 
+                                  BinaryUtils::toBinaryOutput(header), 
+                                  BinaryUtils::toBinaryOutput(iter.binaryInput()), 
                                   false);
 
                         break;
@@ -195,6 +194,7 @@ void receive(){
                         terminate();
                         break;
                     default: // don't need this
+						break;
                 }
 
                 header.endBits();
@@ -212,12 +212,12 @@ void receive(){
             // TODO: check if node is still connected
             if (false) {}
 
-            for(iter = conn->incomingMessageIterator(); iter.isValid(); iter++){
+            for(NetMessageIterator iter = conn->incomingMessageIterator(); iter.isValid(); ++iter){
                 try {  
 
-                    header = iter.headerBinaryInput();
+                    BinaryInput& header = iter.headerBinaryInput();
                     header.beginBits();
-                    batch_id = header.readuint3232();
+                    batch_id = header.readUInt32();
 
                     switch(iter.type()){
                         case PacketType::FRAGMENT:
@@ -230,14 +230,13 @@ void receive(){
                             // check if finished
                             if (++pieces == remote_connection_registry.size()){
                                 // send a new frame packet to the client
-                                BinaryOutput data ();
-                                data.setEndian(G3DEndian::G3D_BIG_ENDIAN);
+                                BinaryOutput& data = BinaryUtils::empty();
 
-                                Image frame;
+                                //Image frame;
                                 // ... 
-                                frame.serialize(data, Image::PNG);
+                                //frame.serialize(data, Image::PNG);
 
-                                client->send(PacketType::FRAME, data, BinaryUtils.toBinaryOutput(batch_id), 0);
+                                //client->send(PacketType::FRAME, data, BinaryUtils::toBinaryOutput(batch_id), 0);
                             }
 
                             break;
@@ -253,7 +252,7 @@ void receive(){
                             // if everyone is accounted for and running without error
                             // broadcast a ready message to every node and await the client's start
                             if(configurations == remote_connection_registry.size()){
-                                broadcast(PacketType::READY, BinaryUtils.empty(), BinaryUtils.empty(), true);
+                                broadcast(PacketType::READY, BinaryUtils::empty(), BinaryUtils::empty(), true);
                             }
 
                             break;
@@ -274,8 +273,6 @@ void receive(){
 }
 
 int main(){
-    // this registry will track remote connections, addressable with IDs
-    remote_connection_registry();
 
     // set up connections (in the future make this dynamic with a reference list or something)
     addRemote(Constants::N1_ADDR);
