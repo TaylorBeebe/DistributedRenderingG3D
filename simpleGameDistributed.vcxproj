@@ -115,6 +115,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="simpleGameDistributed\source\App.cpp" />
+    <ClCompile Include="simpleGameDistributed\source\PhysicsScene.cpp" />
+    <ClCompile Include="simpleGameDistributed\source\PlayerEntity.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="simpleGameDistributed\source\App.h" />
+    <ClInclude Include="simpleGameDistributed\source\PhysicsScene.h" />
+    <ClInclude Include="simpleGameDistributed\source\PlayerEntity.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

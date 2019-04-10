@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DistRenderSource\Nodes\Remote.h" />
+    <ClInclude Include="src\TextureDist.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DistRenderSource\Nodes\Remote.cpp" />
+    <ClCompile Include="src\TextureDist.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

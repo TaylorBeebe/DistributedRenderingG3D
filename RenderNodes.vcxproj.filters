@@ -18,9 +18,15 @@
     <ClInclude Include="DistRenderSource\Nodes\Remote.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\TextureDist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DistRenderSource\Nodes\Remote.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureDist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
