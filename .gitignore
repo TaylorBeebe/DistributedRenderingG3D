@@ -45,7 +45,7 @@ zlib.*
 shared/
 x64/
 log.txt
+Debug/
 
-!RemoteRenderer.h
 
 .DS_Store
