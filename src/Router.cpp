@@ -141,7 +141,7 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
     }
 }
 
-void terminate(){
+void terminateConnection(){
     broadcast(PacketType::TERMINATE, BinaryUtils::empty(), BinaryUtils::empty(), true);
 
     client->disconnect(false);
@@ -191,7 +191,7 @@ void receive(){
 
                         break;
                     case PacketType::TERMINATE: // the client wants to stop
-                        terminate();
+                        terminateConnection();
                         break;
                     default: // don't need this
 						break;
@@ -283,7 +283,7 @@ int main(){
     // if the connection to the client is compromised or there are no remote node connections
     // broadcast a terminate message
     if(!connect(Constants::CLIENT_ADDR, client) || remote_connection_registry.size() == 0){
-        terminate();
+        terminateConnection();
         return 0;
     }
 
