@@ -65,6 +65,7 @@ void App::onInit() {
 	const NetAddress serverAddress(NetAddress::localHostname(), WEB_PORT);
 	m_addressString = serverAddress.toString();
 	debugPrintf("Server Address: %s\n", serverAddress.toString().c_str());
+
 }
 
 
