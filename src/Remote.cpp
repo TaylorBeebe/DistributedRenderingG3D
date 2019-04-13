@@ -39,6 +39,7 @@ namespace DistributedRenderer{
                     break;
 
                 case PacketType::CONFIG: // router delivers the dimension data for this node and awaits reply
+                    cout << "CONFIG received" << endl;
                     // unpack screen data
 					setClip(iter.binaryInput());
                     send(PacketType::CONFIG_RECEIPT);
@@ -48,7 +49,9 @@ namespace DistributedRenderer{
                     break;
 
                 case PacketType::TERMINATE: // this is the end of all messages
+                    cout << "Terminate received" << endl;
                     // clean up app
+                    running = false;
                     break;
 
                 default: // Remote Node does not need this datatype
@@ -70,6 +73,9 @@ namespace DistributedRenderer{
     // @pre: transform packet with list of transforms of entities to update
     // @post: updates frame of corresponding entity with new position data
     void Remote::sync(BinaryInput& update){
+
+        cout << "Syncing update..." << endl;
+
         update.beginBits();
 
         while(update.hasMore()){
@@ -91,11 +97,12 @@ namespace DistributedRenderer{
     // @post: renders a new frame and sends it in a frame packet back to the router
     void Remote::sendFrame(uint32 batch_id){
 
+        cout << "Sending fragment of frame " << batch_id << " to router" << endl;
+
         // maybe spawn a new thread to do it async and if another packet comes in stop
         // that thread and spawn a new one
 
-        // call to renderer here ...
-
         // store it in packet and send it
+        send(PacketType::FRAGMENT);
     }
 }

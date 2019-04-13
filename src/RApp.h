@@ -4,7 +4,6 @@
 using namespace DistributedRenderer;
 
 namespace DistributedRenderer {
-
     class RApp : public GApp {
         protected:
             NetworkNode network_node;

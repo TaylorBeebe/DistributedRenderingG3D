@@ -4,6 +4,8 @@
 #include <vector>
 #include <list>
 #include <set>
+#include <iostream>
+#include <string>
 
 using namespace G3D;
 
