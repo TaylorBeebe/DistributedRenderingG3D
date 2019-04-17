@@ -82,7 +82,7 @@ void RApp::oneFrameAdHoc() {
 
     BEGIN_PROFILER_EVENT("Graphics");
     renderDevice->beginFrame();
-    m_widgetManager->onBeforeGraphics();
+    // m_widgetManager->onBeforeGraphics();
     m_graphicsWatch.tick(); {
         debugAssertGLOk();
         renderDevice->pushState(); {
@@ -179,7 +179,6 @@ void RApp::oneFrame() {
         m_simulationWatch.tock();
             END_PROFILER_EVENT();
     }
-
 
     // Pose
     BEGIN_PROFILER_EVENT("Pose");
@@ -285,3 +284,30 @@ void RApp::oneFrame() {
         window()->popLoopBody();
     }
 }
+
+void RApp::onGraphics(RenderDevice* rd, Array<shared_ptr<Surface> >& posed3D, Array<shared_ptr<Surface2D> >& posed2D) {
+
+    rd->pushState(); {
+        debugAssert(notNull(activeCamera()));
+        rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
+        onGraphics3D(rd, posed3D);
+    } rd->popState();
+    
+    if (notNull(m_screenCapture)) {
+        m_screenCapture->onAfterGraphics3D(rd);
+    }
+
+    // only draw 2D graphics can be drawn on the client
+    if(node.type == NodeType::CLIENT){
+
+        rd->push2D(); {
+            onGraphics2D(rd, posed2D);
+        } rd->pop2D();
+
+        if (notNull(m_screenCapture)) {
+            m_screenCapture->onAfterGraphics2D(rd);
+        }
+
+    }
+}
+

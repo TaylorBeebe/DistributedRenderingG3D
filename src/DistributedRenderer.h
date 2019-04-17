@@ -9,6 +9,14 @@
 
 using namespace G3D;
 
+// ********** COMPUTERS **********
+// 1 -- 137.165.8.92 = 2309294172
+// 2 -- 137.165.8.62 = 2309294142
+// 3 -- 137.165.8.128 = 2309294208
+// 4 -- 137.165.8.124 = 2309294204
+// 5 -- 137.165.209.29 = 2309345565
+// *******************************
+
 namespace DistributedRenderer{
 
     namespace Constants {
@@ -28,11 +36,12 @@ namespace DistributedRenderer{
         static const uint16 RPORT = 1100;
         static const uint16 APORT = 9000;
 
-        static NetAddress ROUTER_ADDR (101010101, RPORT);
-        static NetAddress CLIENT_ADDR (101010101, APORT);
-        static NetAddress N1_ADDR (101010101, APORT);
-        static NetAddress N2_ADDR (101010101, APORT);
-        static NetAddress N3_ADDR (101010101, APORT);
+        static NetAddress ROUTER_ADDR (2309294172, RPORT); // 1
+        static NetAddress CLIENT_ADDR (2309345565, APORT); // 5
+
+        static NetAddress N1_ADDR (2309294142, APORT); // 2
+        static NetAddress N2_ADDR (2309294208, APORT); // 3
+        static NetAddress N3_ADDR (2309294204, APORT); // 4
 
     }
 
