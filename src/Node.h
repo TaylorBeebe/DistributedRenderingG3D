@@ -25,7 +25,7 @@ namespace DistributedRenderer{
             // maybe use a unique id later
             uint net_nonce = 0;
 
-            bool running = false;
+            bool running;
 
             shared_ptr<NetConnection> connection; 
 
@@ -39,8 +39,11 @@ namespace DistributedRenderer{
             }
 
         public:
-            NetworkNode(NodeType t, NetAddress& router_address, RApp& app, bool head) : type(t), the_app(app), headless(head) {
-                if(!connect(router_address, connection)) return; // something bad happened, TODO: end program
+            NetworkNode(NodeType t, NetAddress& router_address, RApp& app, bool head) : type(t), the_app(app), headless(head), running(false) {
+                if(!connect(router_address, connection)){
+                    cout << "Could not connect, shutting down..." << endl;
+                    // the_app.end() or something
+                }
             }
 
             // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)

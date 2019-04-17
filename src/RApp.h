@@ -4,7 +4,6 @@
 using namespace DistributedRenderer;
 
 namespace DistributedRenderer {
-
     class RApp : public GApp {
         protected:
             NetworkNode network_node;
@@ -18,6 +17,7 @@ namespace DistributedRenderer {
             virtual void onRun() override;
             virtual void oneFrame() override;
             virtual void oneFrameAdHoc(); 
+            virtual void onGraphics() override;
 
             virtual void onCleanup() override;
 
