@@ -50,7 +50,7 @@ typedef struct {
 } remote_connection_t;
 
 // APP VARIABLES
-running = true;
+bool running = true;
 
 // PIXELS
 uint32 current_batch;
@@ -72,12 +72,12 @@ shared_ptr<NetConnection> client = nullptr;
 
 void addRemote(NetAddress& addr){
 
-    cout << "Connecting to " << addr.ipString() << endl;
+    cout << "Connecting to " << addr.ip() << endl;
 
     shared_ptr<NetConnection> conn = nullptr;
 
     if(!connect(addr, conn)) {
-        cout << "Could not connect to remote node " << addr.ipString() << endl;
+        cout << "Could not connect to remote node " << addr.ip() << endl;
     }
 
     uint32 id = nonce++;
@@ -93,7 +93,7 @@ void addRemote(NetAddress& addr){
 	cv->connection = conn;
 	remote_connection_registry[id] = cv;
 
-    cout << "Remote node with address " << addr.ipString() << " registered with ID = " << id << endl;
+    cout << "Remote node with address " << addr.ip() << " registered with ID = " << id << endl;
 }
 
 void removeRemote(NetAddress& addr){
