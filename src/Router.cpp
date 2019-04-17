@@ -298,6 +298,7 @@ void receive(){
 
 int main(){
 
+    cout << "Router started up" << endl;
     cout << "Initializing remote connections..." << endl;
 
     // set up connections (in the future make this dynamic with a reference list or something)

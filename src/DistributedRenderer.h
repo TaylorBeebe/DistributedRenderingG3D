@@ -33,15 +33,14 @@ namespace DistributedRenderer{
         static const RealTime CONNECTION_WAIT = 10;
         static const bool COMPRESS_NETWORK_DATA = false;
 
-        static const uint16 RPORT = 1100;
-        static const uint16 APORT = 9000;
+        static const uint16 PORT = 9000; // node port
 
-        static NetAddress ROUTER_ADDR (2309294172, RPORT); // 1
-        static NetAddress CLIENT_ADDR (2309345565, APORT); // 5
+        static NetAddress ROUTER_ADDR (2309294172, PORT); // 1
+        static NetAddress CLIENT_ADDR (2309345565, PORT); // 5
 
-        static NetAddress N1_ADDR (2309294142, APORT); // 2
-        static NetAddress N2_ADDR (2309294208, APORT); // 3
-        static NetAddress N3_ADDR (2309294204, APORT); // 4
+        static NetAddress N1_ADDR (2309294142, PORT); // 2
+        static NetAddress N2_ADDR (2309294208, PORT); // 3
+        static NetAddress N3_ADDR (2309294204, PORT); // 4
 
     }
 
