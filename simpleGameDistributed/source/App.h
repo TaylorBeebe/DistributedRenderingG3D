@@ -2,6 +2,7 @@
 #define App_h
 
 #include <G3D/G3D.h>
+#include "../../src/RenderDeviceDist.h"
 
 class PhysicsScene;
 
