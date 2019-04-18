@@ -43,7 +43,7 @@ namespace DistributedRenderer{
                 if(!connect(router_address, connection)){
                     cout << "Could not connect, shutting down..." << endl;
                     // the_app.end() or something
-                }
+				}else running = true;
             }
 
             // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)

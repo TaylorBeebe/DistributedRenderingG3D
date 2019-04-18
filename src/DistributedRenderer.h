@@ -30,7 +30,7 @@ namespace DistributedRenderer{
         static const uint32 PIXEL_BLEED = 100;
 
         // networking
-        static const RealTime CONNECTION_WAIT = 10;
+        static const RealTime CONNECTION_WAIT = 20;
         static const bool COMPRESS_NETWORK_DATA = false;
 
         static const uint16 PORT = 1000; // node port
@@ -66,10 +66,13 @@ namespace DistributedRenderer{
 
     // wait on a connection
     static bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
-        conn = NetConnection::connectToServer(addr, 2, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
-        RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
+		try {
+			conn = NetConnection::connectToServer(addr, 1, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
+		} catch (...) { return false; }
+
+		RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
         while (conn->status() == NetConnection::NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
-        return conn->status() == NetConnection::NetworkStatus::JUST_CONNECTED;
+        return conn->status() == NetConnection::NetworkStatus::CONNECTED;
     }
 
 	class RApp {

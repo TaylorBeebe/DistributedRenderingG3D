@@ -306,8 +306,8 @@ int main(){
     cout << "Initializing remote connections..." << endl;
 
     // set up connections (in the future make this dynamic with a reference list or something)
-    addRemote(Constants::N1_ADDR);
-    addRemote(Constants::N2_ADDR);
+    // addRemote(Constants::N1_ADDR);
+    // addRemote(Constants::N2_ADDR);
     addRemote(Constants::N3_ADDR);
 
     if(remote_connection_registry.size() == 0){
