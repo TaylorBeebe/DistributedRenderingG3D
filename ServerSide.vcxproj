@@ -27,16 +27,14 @@
     <Image Include="DistRenderSource\ServerSide\data-files\www\favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DistRenderSource\ServerSide\serverTest.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DistRenderSource\ServerSide\serverTest.h" />
+    <ClCompile Include="impl\Router.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{39624ACE-1629-49CD-8D59-6013408EFB1E}</ProjectGuid>
     <RootNamespace>ServerSide</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <ProjectName>Router</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -83,14 +81,20 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(g3d)\G3D10\G3D-app.lib\include;$(ProjectDir)..\build\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\glew.lib\include;$(SolutionDir)..\external\assimp.lib\include;$(SolutionDir)..\external\enet.lib\include;$(SolutionDir)..\external\glfw.lib\include;$(SolutionDir)..\external\nfd.lib\include;$(SolutionDir)..\external\zip.lib\include;$(SolutionDir)..\external\zlib.lib\include;$(SolutionDir)..\external\civetweb.lib\include;$(SolutionDir)../external/tbb/include;$(SolutionDir)../external/fmod/include;$(SolutionDir)../external\ffmpeg\win64\include;$(SolutionDir)../external/embree/include;$(SolutionDir)../external/openvr/include;$(SolutionDir)../G3D-base.lib/include;$(SolutionDir)../G3D-gfx.lib/include;$(SolutionDir)../G3D-app.lib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\build\lib</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -24,15 +24,19 @@
     <ClCompile Include="src\Router.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="src\DistributedRenderer.h" />
     <ClInclude Include="src\Node.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DistributedRenderer.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{E5F4234F-49BC-436E-852F-DD5B8BE9AC5E}</ProjectGuid>
     <RootNamespace>ClientSide</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
-    <ProjectName>DistributedRenderer</ProjectName>
+    <ProjectName>DistributedRenderer.lib</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

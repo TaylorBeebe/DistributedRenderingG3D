@@ -1,5 +1,7 @@
 #include "Node.h"
 
+using namespace DistributedRenderer;
+
 namespace DistributedRenderer{
 
     Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, Constants::ROUTER_ADDR, app, headless_mode) {}

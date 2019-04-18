@@ -1,3 +1,4 @@
+#include <G3D/G3D.h>
 #include "DistributedRenderer.h"
 
 using namespace std;
@@ -78,6 +79,7 @@ void addRemote(NetAddress& addr){
 
     if(!connect(addr, conn)) {
         cout << "Could not connect to remote node " << addr.ip() << endl;
+		return;
     }
 
     uint32 id = nonce++;
@@ -297,6 +299,8 @@ void receive(){
 }
 
 int main(){
+
+	initG3D();
 
     cout << "Router started up" << endl;
     cout << "Initializing remote connections..." << endl;

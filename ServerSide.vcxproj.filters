@@ -31,13 +31,8 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DistRenderSource\ServerSide\serverTest.cpp">
+    <ClCompile Include="impl\Router.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DistRenderSource\ServerSide\serverTest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

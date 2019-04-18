@@ -33,7 +33,7 @@ namespace DistributedRenderer{
         static const RealTime CONNECTION_WAIT = 10;
         static const bool COMPRESS_NETWORK_DATA = false;
 
-        static const uint16 PORT = 10000; // node port
+        static const uint16 PORT = 1000; // node port
 
         static NetAddress ROUTER_ADDR ("137.165.8.92", PORT); // 1
         static NetAddress CLIENT_ADDR ("137.165.209.29", PORT); // 5
@@ -66,7 +66,7 @@ namespace DistributedRenderer{
 
     // wait on a connection
     static bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
-        conn = NetConnection::connectToServer(addr, 1, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
+        conn = NetConnection::connectToServer(addr, 2, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
         RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
         while (conn->status() == NetConnection::NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
         return conn->status() == NetConnection::NetworkStatus::JUST_CONNECTED;

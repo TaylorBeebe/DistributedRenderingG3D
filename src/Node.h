@@ -90,7 +90,7 @@ namespace DistributedRenderer{
             void setClip(uint32 y, uint32 height);
             
         public:
-            Remote(RApp& app, bool h);
+            Remote(RApp& app, bool headless_mode);
             void receive();
 	};
 }
