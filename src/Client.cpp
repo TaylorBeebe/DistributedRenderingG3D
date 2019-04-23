@@ -8,6 +8,29 @@ namespace DistributedRenderer{
 
     Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, Constants::ROUTER_ADDR, app, false) {}
 
+    void onConnect() {
+        // send router intoduction
+        send(PacketType::HI_AM_CLIENT);
+
+        bool server_online = false;
+
+        // wait for an ACK
+        // then wait for a ready
+        while (true) {
+            for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); iter++){
+                switch(iter.type()){
+                    case PacketType::ACK:
+                        server_online = true;
+                        break;
+                    case PacketType::READY:
+                        running = true;
+                        return;
+                    default: break;
+                }
+            }
+        }
+    }
+
     void Client::checkNetwork(){
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
@@ -30,17 +53,9 @@ namespace DistributedRenderer{
                     // cache in frame buffer
 
                     break;
-                case PacketType::READY:
-                    // if the client receives a ready from the router, this means that the router
-                    // has contact with all nodes and is ready to start 
-
-                    running = true;
-                    
-                    // start game tick
-
-                    break;
                 case PacketType::TERMINATE:
                     // clean up
+                    running = false;
                     break;
                 default: // Client does not need this datatype
                     debugPrintf("Client received incompatible packet type\n");
@@ -53,7 +68,7 @@ namespace DistributedRenderer{
             // handle error
         }
 
-        ++iter;
+        iter++;
     }
 
     // Use this method to mark an entity to be updated on the network

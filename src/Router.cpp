@@ -16,31 +16,57 @@ using namespace G3D;
  *
  * -----
  *
- * PROTCOL:
- * 
- * Upon starting, the server will establish connections with all
- * specified remote nodes and the client application. Given valid
- * connections, the router will calculate the screen fragments
- * for each remote node and send a CONFIG packet with that info
- * to each node respectively
+ * REGISTRATION:
  *
- * It is up to the remote nodes to respond with a CONFIG_RECEIPT
- * packet asserting that the nodes successfully started their 
- * applications and received the screen data. The router will 
+ * Upon starting, a server will listen for connections. The server
+ * will listen indefinitely until a Client connects, at which point
+ * the server will make a deadline for remote nodes to connect, after
+ * which it will begin when it has at least one remote node. At this
+ * point the router will ignore any incoming messages that it has not
+ * already registered as a remote or client node.
+ *
+ *
+ * CONFIG:
+ * 
+ * Given valid connections the router will calculate the screen fragments 
+ * for each remote node and send a CONFIG packet with that info to each 
+ * node respectively. It is up to the remote nodes to respond with a 
+ * CONFIG_RECEIPT packet asserting that the nodes successfully started their 
+ * applications with the received screen data. The router will 
  * tally the responses, and when all are accounted for, the router
  * signals the client to start by broadcasting a READY packet to 
- * the network, also signalling the remote nodes
+ * the network, also signalling the remote nodes.
  *
- * On reception of a TRANSFORM packet, the router will reroute
+ *
+ * RUNNING:
+ *
+ * On reception of an UPDATE packet, the router will reroute
  * the packet to all remote nodes. If the current frame build
- * is not complete, we can flush it and reset because that
- * frame missed the deadline.
+ * is not complete, the rotuer will flush it and reset because that
+ * frame missed the deadline on the client by now.
  *
  * On reception of a FRAGMENT packet, the router will add it 
  * to the build buffer for the current frame. If this makes the 
  * build buffer is full, the router will send the finished frame
  * to the client as a PNG.
+ *
+ * Coming soon, dynamic reallocation on node failure
+ *
+ *
+ * TERMINATION:
+ *
+ * On reception of a TERMINATE packet from the client, the router
+ * will broadcast the terminate packet and cut off all connections.
+ *
  */
+
+enum RouterState {
+    OFFLINE,
+    REGISTRATION,
+    CONFIG,
+    RUNNING,
+    TERMINATED
+};
 
 typedef struct {
     bool configured;
@@ -50,56 +76,52 @@ typedef struct {
     shared_ptr<NetConnection> connection;
 } remote_connection_t;
 
-// APP VARIABLES
-bool running = true;
+RouterState router_state = OFFLINE;
 
-// PIXELS
-uint32 current_batch;
-uint32 pieces = 0;
-// -- some pixel buffer
-
-// NETWORKING
-uint32 nonce = 0; // for basic, fast remote identifiers
-uint32 configurations = 0; // internal tally of configured remotes
-
-// this registry will track remote connections, addressable with IDs
+// this registry will track remote connections, addressable with IP addresses
 map<uint32, remote_connection_t*> remote_connection_registry;
-// the client connection
-shared_ptr<NetConnection> client = nullptr;
 
 // =========================================
 //                  Setup
 // =========================================
 
-void addRemote(NetAddress& addr){
+void addClient(shared_ptr<NetConnection> conn){
 
-    cout << "Connecting to " << addr.ip() << endl;
+    cout << "Connected to client" << endl;
 
-    shared_ptr<NetConnection> conn = nullptr;
+    // first come first serve
+    if (client != NULL) return;
 
-    if(!connect(addr, conn)) {
-        cout << "Could not connect to remote node " << addr.ip() << endl;
-		return;
-    }
+    client = conn; 
+    // acknowledge
+    conn->send(PacketType::ACK, BinaryUtils::empty(), BinaryUtils::empty(), 0);
+}
 
-    uint32 id = nonce++;
+void addRemote(shared_ptr<NetConnection> conn){
+
+    uint32 id = conn->address().ip();
+
+    if(remote_connection_registry.contains(id)) return;
 
     remote_connection_t* cv = new remote_connection_t();
     cv->id = id;
     cv->configured = false;
 
-    // default
+    // defaults
     cv->y = 0;
     cv->h = 0;
 
 	cv->connection = conn;
 	remote_connection_registry[id] = cv;
 
-    cout << "Remote node with address " << addr.ip() << " registered with ID = " << id << endl;
+    // acknowledge
+    conn->send(PacketType::ACK, BinaryUtils::empty(), BinaryUtils::empty(), 0);
+
+    cout << "Remote node with address " << id << " registered" << endl;
 }
 
 void removeRemote(NetAddress& addr){
-    // more complicated
+    // TODO: dynamic resource reallocation
 }
 
 void configureScreenSplit(){
@@ -134,13 +156,91 @@ void configureScreenSplit(){
 //              Frame Buffering
 // =========================================
 
+uint32 current_batch;
+uint32 pieces = 0;
+// -- some pixel buffer
+
 void flushPixelBuffer() {}
 
 void stitch(Image& fragment, uint32 x, uint32 y) {}
 
 // =========================================
+//              Packet Handling
+// =========================================
+
+int configurations = 0;
+
+void tallyConfigs(remote_connection_t* conn_vars) {
+    if(!conn_vars->configured){
+        conn_vars->configured = true;
+        configurations++;
+    }
+
+    // if everyone is accounted for and running without error
+    // broadcast a ready message to every node and await the client's start
+    if(configurations == remote_connection_registry.size()){
+        broadcast(PacketType::READY, BinaryUtils::empty(), BinaryUtils::empty(), true);
+
+        cout << "----------------" << endl;
+        cout << "NETWORK IS READY" << endl;
+        cout << "----------------" << endl;
+    }
+
+    router_state = RUNNING;
+}
+
+void rerouteUpdate(BinaryInput& header, BinaryInput& body) {
+    cout << "Rerouting update packet no. " << batch_id << endl;
+
+    header.beginBits();
+    current_batch = header.readUInt32();
+    header.endBits();
+
+    // reset batch variables
+    flushPixelBuffer();
+    pieces = 0;
+
+    // route transform data to all remotes
+    broadcast(PacketType::UPDATE, 
+              BinaryUtils::toBinaryOutput(header), 
+              BinaryUtils::toBinaryOutput(body), 
+              false);
+}
+
+void handleFragment(BinaryInput& header, BinaryInput& body) {
+
+    header.beginBits();
+    uint32 batch_id = header.readUInt32();
+    header.endBits();
+
+    // old frag, toss out
+    if (batch_id != current_batch) break;
+
+    // attach fragment to buffer
+    // stitch();
+
+    // check if finished
+    if (++pieces == remote_connection_registry.size()){
+        cout << "Sending frame no. " << batch_id << " to client" << endl;
+
+        // send a new frame packet to the client
+        // BinaryOutput& data = BinaryUtils::empty();
+
+        //Image frame;
+        // ... 
+        //frame.serialize(data, Image::PNG);
+
+        //client->send(PacketType::FRAME, data, BinaryUtils::toBinaryOutput(batch_id), 0);
+    }
+
+} 
+
+// =========================================
 //                Networking
 // =========================================
+
+shared_ptr<NetServer> server;  
+shared_ptr<NetConnection> client = nullptr;
 
 void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client){
 
@@ -155,17 +255,47 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
     }
 }
 
-void terminateConnection(){
-    cout << "Ending program..." << endl;
+void terminateConnections(){
+    cout << "Shutting down." << endl;
     broadcast(PacketType::TERMINATE, BinaryUtils::empty(), BinaryUtils::empty(), true);
 
-    client->disconnect(false);
+    if (client != NULL) client->disconnect(false);
+
     map<uint32, remote_connection_t*>::iterator iter;
     for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
         iter->second->connection->disconnect(false);
     }
+}
 
-    running = false;
+void listenAndRegister () {
+
+    // default waiting period, won't matter because condition will short circuit
+    RealTime tolerance = System::time(); 
+
+    // listen until the client responds, and if the client responded wait until the tolerance is exceeded
+    // then just use whatever was registered. If there were no remote nodes, we'll just terminate in main
+    while (client == NULL || System::time() < tolerance) {
+        for(NetConnectionIterator niter = server->newConnectionIterator(); niter.isValid(); niter++){
+            shared_ptr<NetConnection> conn = niter.connection();
+            for (NetMessageIterator miter = conn->incomingMessageIterator(); miter.isValid(); miter++) {
+                try {
+                    switch(miter.type()){
+                        case PacketType::HI_AM_REMOTE:
+                            addRemote(conn);
+                            break;
+                        case PacketType::HI_AM_CLIENT:
+                            addClient(conn);
+                            deadline = System::time() + Constants::CONNECTION_WAIT;
+                            break;
+                        default:
+                            cout << "Set up phase was not expecting packet of type " << miter.type() << endl; 
+                    }
+                } catch (...) {
+                    cout << "An error occured" << endl;
+                }
+            } // end message queue iterate
+        } // end connections iterate
+    } // end while
 }
 
 // This receive method will check for available messages forever unless a connection is compromised,
@@ -177,47 +307,25 @@ void receive(){
 
     map<uint32, remote_connection_t*>::iterator remotes;
 
-	uint32 batch_id;
-
-    while(running){
+    while(router_state != TERMINATED){
 
         // TODO: make sure client is still connected
         if (false) {}
 
         // listen to client
-        for(NetMessageIterator iter = client->incomingMessageIterator(); iter.isValid(); ++iter){
+        for(NetMessageIterator iter = client->incomingMessageIterator(); iter.isValid(); iter++){
             try {
-				BinaryInput& header = iter.headerBinaryInput();
-                header.beginBits();
-
-                batch_id = header.readUInt32();
-
                 switch(iter.type()){
-                    case PacketType::UPDATE: // frequent update from clients
-
-                        cout << "Rerouting update packet no. " << batch_id << endl;
-
-                        // reset batch variables
-                        current_batch = batch_id;
-                        flushPixelBuffer();
-                        pieces = 0;
-                    
-                        // route transform data to all remotes
-                        broadcast(PacketType::UPDATE, 
-                                  BinaryUtils::toBinaryOutput(header), 
-                                  BinaryUtils::toBinaryOutput(iter.binaryInput()), 
-                                  false);
-
+                    case PacketType::UPDATE: // reroute update from clients
+                        rerouteUpdate(iter.headerBinaryInput(), iter.binaryInput());
                         break;
                     case PacketType::TERMINATE: // the client wants to stop
-                        terminateConnection();
+                        router_state = TERMINATED;
                         break;
-                    default: // don't need this
+                    default:
+                        cout << "Router received unexpected message " << iter.type() << " from client" << endl;
 						break;
                 }
-
-                header.endBits();
-
             }catch(...){
                 // handle client error
             }
@@ -231,65 +339,22 @@ void receive(){
             // TODO: check if node is still connected
             if (false) {}
 
-            for(NetMessageIterator iter = conn->incomingMessageIterator(); iter.isValid(); ++iter){
+            for(NetMessageIterator iter = conn->incomingMessageIterator(); iter.isValid(); iter++){
                 try {  
-
-                    BinaryInput& header = iter.headerBinaryInput();
-                    header.beginBits();
-                    batch_id = header.readUInt32();
-
                     switch(iter.type()){
-                        case PacketType::FRAGMENT:
-
-                            // old frag, toss out
-                            if (batch_id != current_batch) break;
-
-                            // attach fragment to buffer
-
+                        case PacketType::FRAGMENT: // a frame fragment
                             cout << "remote " << conn_vars->id << "answered, total: " << (pieces + 1) << "/" << remote_connection_registry.size() << endl;
-
-                            // check if finished
-                            if (++pieces == remote_connection_registry.size()){
-                                cout << "Sending frame no. " << batch_id << " to client" << endl;
-
-                                // send a new frame packet to the client
-                                // BinaryOutput& data = BinaryUtils::empty();
-
-                                //Image frame;
-                                // ... 
-                                //frame.serialize(data, Image::PNG);
-
-                                //client->send(PacketType::FRAME, data, BinaryUtils::toBinaryOutput(batch_id), 0);
-                            }
-
+                            handleFragment();
                             break;
-
-                        case PacketType::CONFIG_RECEIPT:
-
-                            // do accounting
-                            if(!conn_vars->configured){
-                                conn_vars->configured = true;
-                                configurations++;
-                            }
-
-                            cout << "Remote " << conn_vars->id << " configured: " << configurations << "/" << remote_connection_registry.size() << endl;
-
-                            // if everyone is accounted for and running without error
-                            // broadcast a ready message to every node and await the client's start
-                            if(configurations == remote_connection_registry.size()){
-                                broadcast(PacketType::READY, BinaryUtils::empty(), BinaryUtils::empty(), true);
-                                cout << "NETWORK IS READY" << endl;
-                            }
-
+                        case PacketType::CONFIG_RECEIPT: // a receipt of configs
+                            tallyConfigs(conn_vars)
                             break;
 
                         default: // router received unkown message
+                            cout << "Router received unexpected message " << iter.type() << " from remote node" << endl;
                             break;
 
                     } // end switch
-
-                    header.endBits();
-
                 }catch(...){
                     // handle error
                 }
@@ -303,33 +368,29 @@ int main(){
 	initG3D();
 
     cout << "Router started up" << endl;
-    cout << "Initializing remote connections..." << endl;
+    cout << "Initializing server..." << endl;
 
-    // set up connections (in the future make this dynamic with a reference list or something)
-    // addRemote(Constants::N1_ADDR);
-    // addRemote(Constants::N2_ADDR);
-    addRemote(Constants::N3_ADDR);
+    server = NetServer::create(Constants::ROUTER_ADDR, 32, 1, UNLIMITED_BANDWIDTH, UNLIMITED_BANDWIDTH);
 
-    if(remote_connection_registry.size() == 0){
-        cout << "No remotes could connect" << endl;
-        terminateConnection();
-        return 0;
+    cout << "Waiting for routers..." << endl;
+
+    // registration phase
+    router_state = REGISTRATION; 
+    listenAndRegister();
+
+    // config phase
+    router_state = CONFIG;
+
+    if(remote_connection_registry.size() == 0) cout << "No remote nodes were registered." << endl;   
+    else if (client == NULL) cout << "Client was NULL" << endl;
+    else {
+        // calculate screen data
+        configureScreenSplit();
+        // poll network for updates ad infintum
+        receive();
     }
 
-    cout << "Connecting to client..." << endl;
-
-    // Attempt connection to client
-    // if the connection to the client is compromised
-    // broadcast a terminate message
-    if(!connect(Constants::CLIENT_ADDR, client)){
-        terminateConnection();
-        return 0;
-    }
-
-    // calculate screen data
-    configureScreenSplit();
-    // poll network for updates ad infintum
-    receive();
+    terminateConnections();
 
     cout << "Goodbye." << endl; 
 

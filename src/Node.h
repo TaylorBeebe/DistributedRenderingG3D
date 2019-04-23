@@ -38,12 +38,17 @@ namespace DistributedRenderer{
                 connection->send(t, BinaryUtils::empty(), BinaryUtils::empty(), 0);
             }
 
+            virtual void onConnect() {}
+
         public:
             NetworkNode(NodeType t, NetAddress& router_address, RApp& app, bool head) : type(t), the_app(app), headless(head), running(false) {
                 if(!connect(router_address, connection)){
                     cout << "Could not connect, shutting down..." << endl;
                     // the_app.end() or something
-				}else running = true;
+				}else{
+                    running = true;
+                    onConnect();
+                }
             }
 
             // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)
@@ -57,8 +62,6 @@ namespace DistributedRenderer{
             bool isTypeOf(NodeType t){ return t == type; }
             bool isRunning() { return running; }
 			bool isHeadless() { return headless; }
-
-            virtual void finishedSetup() {}
 	};
 
     class Client : public NetworkNode{
@@ -69,6 +72,8 @@ namespace DistributedRenderer{
             set<unsigned int> changed_entities;
 
             // frame cache
+
+            void onConnect() override;
 
         public:
             Client(RApp& app);
@@ -88,6 +93,8 @@ namespace DistributedRenderer{
 
 			void setClip(BinaryInput& bi);
             void setClip(uint32 y, uint32 height);
+
+            void onConnect() override;
             
         public:
             Remote(RApp& app, bool headless_mode);

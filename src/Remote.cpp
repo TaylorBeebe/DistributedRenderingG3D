@@ -6,6 +6,35 @@ namespace DistributedRenderer{
 
     Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, Constants::ROUTER_ADDR, app, headless_mode) {}
 
+    void onConnect() {
+        // send router intoduction
+        send(PacketType::HI_AM_REMOTE);
+
+        bool server_online = false;
+
+        // wait for an ACK
+        // then wait for a config
+        // then wait for a ready
+        while (true) {
+            for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); iter++){
+                switch(iter.type()){
+                    case PacketType::ACK:
+                        server_online = true;
+                        break;
+                    case PacketType::CONFIG:
+                        cout << "CONFIG received" << endl;
+                        setClip(iter.binaryInput());
+                        send(PacketType::CONFIG_RECEIPT);
+                        break;
+                    case PacketType::READY:
+                        running = true;
+                        return;
+                    default: break;
+                }
+            }
+        }
+    }
+
     void Remote::setClip(uint32 y, uint32 height){
         bounds = Rect2D::xywh(0, y, Constants::SCREEN_WIDTH, height);
     }
@@ -38,16 +67,6 @@ namespace DistributedRenderer{
                     sync(iter.binaryInput());
                     // the_app.oneFrameAdHoc();
                     sendFrame(batch_id);
-                    break;
-
-                case PacketType::CONFIG: // router delivers the dimension data for this node and awaits reply
-                    cout << "CONFIG received" << endl;
-                    // unpack screen data
-					setClip(iter.binaryInput());
-                    send(PacketType::CONFIG_RECEIPT);
-
-                case PacketType::READY: // client application will start, just chill
-                    running = true;
                     break;
 
                 case PacketType::TERMINATE: // this is the end of all messages
