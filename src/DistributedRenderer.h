@@ -58,7 +58,7 @@ namespace DistributedRenderer{
         CONFIG_RECEIPT,
         READY,
         TERMINATE,
-        HI_AM_NODE,
+        HI_AM_REMOTE,
         HI_AM_CLIENT,
         ACK
     };

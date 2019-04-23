@@ -6,7 +6,7 @@ namespace DistributedRenderer{
 
     Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, Constants::ROUTER_ADDR, app, headless_mode) {}
 
-    void onConnect() {
+    void Remote::onConnect() {
         // send router intoduction
         send(PacketType::HI_AM_REMOTE);
 
@@ -16,7 +16,7 @@ namespace DistributedRenderer{
         // then wait for a config
         // then wait for a ready
         while (true) {
-            for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); iter++){
+            for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
                     case PacketType::ACK:
                         server_online = true;

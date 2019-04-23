@@ -8,7 +8,7 @@ namespace DistributedRenderer{
 
     Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, Constants::ROUTER_ADDR, app, false) {}
 
-    void onConnect() {
+    void Client::onConnect() {
         // send router intoduction
         send(PacketType::HI_AM_CLIENT);
 
@@ -17,7 +17,7 @@ namespace DistributedRenderer{
         // wait for an ACK
         // then wait for a ready
         while (true) {
-            for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); iter++){
+            for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
                     case PacketType::ACK:
                         server_online = true;
@@ -68,7 +68,7 @@ namespace DistributedRenderer{
             // handle error
         }
 
-        iter++;
+        ++iter;
     }
 
     // Use this method to mark an entity to be updated on the network
