@@ -2,11 +2,11 @@
 #define App_h
 
 #include <G3D/G3D.h>
-#include "../../src/RenderDeviceDist.h"
+#include "../../src/RApp.h"
 
 class PhysicsScene;
 
-class App : public GApp {
+class App : public RApp {
 protected:
 
     bool                        m_firstPersonMode;

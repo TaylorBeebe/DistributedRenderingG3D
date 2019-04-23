@@ -14,10 +14,10 @@ namespace DistributedRenderer {
 
             void onInit() override;
 
-            virtual void onRun() override;
-            virtual void oneFrame() override;
+            void onRun();
+            void oneFrame();
             virtual void oneFrameAdHoc(); 
-            virtual void onGraphics() override;
+			void onGraphics(RenderDevice* rd, Array<shared_ptr<Surface> >& surface, Array<shared_ptr<Surface2D> >& surface2D) override;
 
             virtual void onCleanup() override;
 

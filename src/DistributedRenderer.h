@@ -78,10 +78,10 @@ namespace DistributedRenderer{
         return conn->status() == NetConnection::NetworkStatus::CONNECTED;
     }
 
-	class RApp {
-		public:
-			int a = 1;
-	};
+//	class RApp {
+//		public:
+//			int a = 1;
+//	};
 
     // easy conversion of data types to BinaryOutputs
     class BinaryUtils {
