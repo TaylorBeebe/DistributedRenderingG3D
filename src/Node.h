@@ -1,6 +1,5 @@
 #pragma once
 #include "DistributedRenderer.h"
-#include "enet/enet.h"
 
 using namespace G3D;
 using namespace std;
