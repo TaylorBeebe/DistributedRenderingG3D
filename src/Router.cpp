@@ -103,7 +103,7 @@ void addClient(shared_ptr<NetConnection> conn){
 
     client = conn; 
     // acknowledge
-    conn->send(PacketType::ACK, BinaryUtils::empty(), BinaryUtils::empty(), 0);
+    conn->send(PacketType::ACK, *BinaryUtils::empty(), 0);
 }
 
 void addRemote(shared_ptr<NetConnection> conn){
@@ -125,7 +125,7 @@ void addRemote(shared_ptr<NetConnection> conn){
 
     // acknowledge
 	
-    conn->send(PacketType::ACK, BinaryUtils::empty(), 0);
+    conn->send(PacketType::ACK, *BinaryUtils::empty(), 0);
 
     cout << "Remote node with address " << id << " registered" << endl;
 }
@@ -149,10 +149,10 @@ void configureScreenSplit(){
 
         // send the config data
 		uint32 conf_attrs[] = { curr_y, frag_height };
-        BinaryOutput& config = BinaryUtils::toBinaryOutput( conf_attrs );
+        BinaryOutput* config = BinaryUtils::toBinaryOutput( conf_attrs );
 
         cout << "Sending CONFIG packet to Remote Node " << cv->id << endl;
-        cv->connection->send(PacketType::CONFIG, BinaryUtils::empty(), config, 0);
+        cv->connection->send(PacketType::CONFIG, *BinaryUtils::empty(), *config, 0);
 
         // store internal record
         cv->y = curr_y;
@@ -174,6 +174,10 @@ void stitch(Image& fragment, uint32 x, uint32 y) {}
 //                Networking
 // =========================================
 
+void broadcast(PacketType t, bool include_client) {
+	broadcast(t, *BinaryUtils::empty(), *BinaryUtils::empty(), include_client);
+}
+
 void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client) {
 
 	cout << "Broadcasting message..." << endl;
@@ -189,7 +193,7 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
 
 void terminateConnections() {
 	cout << "Shutting down." << endl;
-	broadcast(PacketType::TERMINATE, BinaryUtils::empty(), BinaryUtils::empty(), true);
+	broadcast(PacketType::TERMINATE, true);
 
 	if (client != NULL) client->disconnect(false);
 
@@ -208,7 +212,7 @@ void tallyConfigs(remote_connection_t* conn_vars) {
     // if everyone is accounted for and running without error
     // broadcast a ready message to every node and await the client's start
     if(configurations == remote_connection_registry.size()){
-        broadcast(PacketType::READY, BinaryUtils::empty(), BinaryUtils::empty(), true);
+        broadcast(PacketType::READY, true);
 
         cout << "----------------" << endl;
         cout << "NETWORK IS READY" << endl;
@@ -232,8 +236,8 @@ void rerouteUpdate(BinaryInput& header, BinaryInput& body) {
 
     // route transform data to all remotes
     broadcast(PacketType::UPDATE, 
-              BinaryUtils::toBinaryOutput(header), 
-              BinaryUtils::toBinaryOutput(body), 
+              *BinaryUtils::toBinaryOutput(&header), 
+              *BinaryUtils::toBinaryOutput(&body), 
               false);
 }
 
