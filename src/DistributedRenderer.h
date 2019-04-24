@@ -91,17 +91,17 @@ namespace DistributedRenderer{
 				return BinaryUtils::toBinaryOutput((uint32) 0);
 			}
 
-            static BinaryOutput& toBinaryOutput(uint32 i) {
+            static BinaryOutput& toBinaryOutput(uint16 i) {
                 BinaryOutput bo ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
                 bo.beginBits();
-                bo.writeUInt32(i);
+                bo.writeUInt16(i);
                 bo.endBits();
 
                 return bo;
             }
 
-            static BinaryOutput& toBinaryOutput(uint32 list[]) {
+            static BinaryOutput& toBinaryOutput(uint16 list[]) {
 				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);;
                 bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
