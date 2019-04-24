@@ -6,7 +6,7 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, Constants::ROUTER_ADDR, app, false) {}
+    Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, app, false) {}
 
     void Client::onConnect() {
         // send router intoduction
@@ -14,18 +14,16 @@ namespace DistributedRenderer{
 
         bool server_online = false;
 
-        // wait for an ACK
-        // then wait for a ready
-        while (true) {
+        // wait for a ready
+        while (isConnected()) {
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
-                    case PacketType::ACK:
-                        server_online = true;
-                        break;
                     case PacketType::READY:
-                        running = true;
+						// exit so the app can run
                         return;
-                    default: break;
+                    default:
+						cout << "AckED" << endl;
+						break;
                 }
             }
         }
@@ -55,7 +53,7 @@ namespace DistributedRenderer{
                     break;
                 case PacketType::TERMINATE:
                     // clean up
-                    running = false;
+                    // delete connection
                     break;
                 default: // Client does not need this datatype
                     debugPrintf("Client received incompatible packet type\n");

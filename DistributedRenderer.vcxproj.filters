@@ -21,7 +21,7 @@
     <ClCompile Include="src\Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Router.cpp">
+    <ClCompile Include="impl\RemoteTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
