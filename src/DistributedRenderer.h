@@ -30,7 +30,7 @@ namespace DistributedRenderer{
         static const uint32 PIXEL_BLEED = 100;
 
         // networking
-        static const RealTime CONNECTION_WAIT = 20;
+        static const RealTime CONNECTION_WAIT = 10;
         static const bool COMPRESS_NETWORK_DATA = false;
 
         static const uint16 PORT = 8080; // node port
@@ -68,14 +68,25 @@ namespace DistributedRenderer{
     // =========================================
 
     // wait on a connection
-    static bool connect(NetAddress& addr, shared_ptr<NetConnection> conn){
-		try {
-			conn = NetConnection::connectToServer(addr, 1, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
-		} catch (...) { return false; }
+    static bool connect(NetAddress& addr, shared_ptr<NetConnection>* conn){
 
-		RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
-        while (conn->status() == NetConnection::NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
-        return conn->status() == NetConnection::NetworkStatus::CONNECTED;
+		try {
+
+			shared_ptr<NetConnection> connection;
+
+			connection = NetConnection::connectToServer(addr, 1, NetConnection::UNLIMITED_BANDWIDTH, NetConnection::UNLIMITED_BANDWIDTH);
+
+			RealTime deadline = System::time() + Constants::CONNECTION_WAIT;
+			while (connection->status() == NetConnection::NetworkStatus::WAITING_TO_CONNECT && System::time() < deadline) {}
+
+			if (connection->status() == NetConnection::NetworkStatus::JUST_CONNECTED) {
+				*conn = connection;
+				return true;
+			}
+
+		} catch (...) { }
+
+		return false;
     }
 
 //	class RApp {
@@ -88,22 +99,20 @@ namespace DistributedRenderer{
         public:
 				
 			static BinaryOutput& empty() {
-				return BinaryUtils::toBinaryOutput((uint32) 0);
+				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				return bo;
+
+				//return BinaryUtils::toBinaryOutput((uint32) 0);
 			}
 
             static BinaryOutput& toBinaryOutput(uint32 i) {
                 BinaryOutput bo ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-
-                bo.beginBits();
                 bo.writeUInt32(i);
-                bo.endBits();
-
                 return bo;
             }
 
             static BinaryOutput& toBinaryOutput(uint32 list[]) {
 				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);;
-                bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
 				bo.beginBits();
 
@@ -117,7 +126,6 @@ namespace DistributedRenderer{
 
             static BinaryOutput& toBinaryOutput(BinaryInput& in) {
 				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-                bo.setEndian(G3DEndian::G3D_BIG_ENDIAN);
 
                 bo.beginBits();
                 bo.writeBits((uint32) in.getCArray(), in.getLength());

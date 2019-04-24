@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="impl\RemoteTest.cpp" />
     <ClCompile Include="src\Client.cpp" />
     <ClCompile Include="src\Remote.cpp" />
-    <ClCompile Include="src\Router.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />

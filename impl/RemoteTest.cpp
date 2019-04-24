@@ -14,8 +14,9 @@ int main(){
 	RApp app; 
 	Remote remote (app, true);
 
-	if(remote.isRunning()) cout << "Node initialized, now listening..." << endl;
-	while (remote.isRunning()) {
+	remote.init_connection(Constants::ROUTER_ADDR);
+
+	while (remote.isConnected()) {
 		remote.receive();
 	}
 

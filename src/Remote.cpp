@@ -4,32 +4,35 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, Constants::ROUTER_ADDR, app, headless_mode) {}
+    Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, app, headless_mode) {}
 
     void Remote::onConnect() {
+
+		cout << "sending introduction" << endl;
+
         // send router intoduction
         send(PacketType::HI_AM_REMOTE);
 
+		cout << "sent intro, waiting for response..." << endl;
+
         bool server_online = false;
 
-        // wait for an ACK
-        // then wait for a config
+        // wait for a config
         // then wait for a ready
-        while (true) {
+        while (isConnected()) {
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
-                    case PacketType::ACK:
-                        server_online = true;
-                        break;
                     case PacketType::CONFIG:
                         cout << "CONFIG received" << endl;
                         setClip(iter.binaryInput());
                         send(PacketType::CONFIG_RECEIPT);
                         break;
                     case PacketType::READY:
-                        running = true;
+						cout << "Network is ready" << endl;
                         return;
-                    default: break;
+                    default:
+						cout << "got an ack" << endl;
+						break;
                 }
             }
         }
@@ -72,7 +75,7 @@ namespace DistributedRenderer{
                 case PacketType::TERMINATE: // this is the end of all messages
                     cout << "Terminate received" << endl;
                     // clean up app
-                    running = false;
+					// delete connection
                     break;
 
                 default: // Remote Node does not need this datatype

@@ -1,5 +1,6 @@
 #pragma once
 #include "DistributedRenderer.h"
+#include "enet/enet.h"
 
 using namespace G3D;
 using namespace std;
@@ -25,8 +26,6 @@ namespace DistributedRenderer{
             // maybe use a unique id later
             uint net_nonce = 0;
 
-            bool running;
-
             shared_ptr<NetConnection> connection; 
 
             void send(PacketType t, BinaryOutput& header, BinaryOutput& body){
@@ -35,21 +34,27 @@ namespace DistributedRenderer{
 
             // send empty packet with type
             void send(PacketType t){
-                connection->send(t, BinaryUtils::empty(), BinaryUtils::empty(), 0);
+				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				bo.writeBool8(1);
+                connection->send(t, bo, 0);
             }
 
-            virtual void onConnect() {}
+			virtual void onConnect() {}
 
         public:
-            NetworkNode(NodeType t, NetAddress& router_address, RApp& app, bool head) : type(t), the_app(app), headless(head), running(false) {
-                if(!connect(router_address, connection)){
-                    cout << "Could not connect, shutting down..." << endl;
-                    // the_app.end() or something
-				}else{
-                    running = true;
-                    onConnect();
-                }
-            }
+            NetworkNode(NodeType t, RApp& app, bool head) : type(t), the_app(app), headless(head) {}
+
+			bool init_connection(NetAddress router_address) {
+				
+				// TODO: check that the connection wasn't already initialized
+
+				if (connect(router_address, &connection)) {
+					onConnect();
+					return true;
+				} else cout << "Connection Failed" << endl;
+
+				return false;
+			}
 
             // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)
             // @post: creates network ID for entity and stores reference to it
@@ -60,20 +65,24 @@ namespace DistributedRenderer{
             } 
 
             bool isTypeOf(NodeType t){ return t == type; }
-            bool isRunning() { return running; }
+
+            bool isConnected() { 
+				NetConnection::NetworkStatus status = connection->status();
+				return connection != NULL && (status == NetConnection::CONNECTED || status == NetConnection::JUST_CONNECTED); 
+			}
 			bool isHeadless() { return headless; }
 	};
 
     class Client : public NetworkNode{
-        private:
-            unsigned int current_batch_id = 0; 
+        protected:
+            uint32 current_batch_id = 0; 
             float ms_to_deadline = 0;
 
             set<unsigned int> changed_entities;
 
             // frame cache
 
-            void onConnect() override;
+			void onConnect() override;
 
         public:
             Client(RApp& app);
@@ -82,6 +91,7 @@ namespace DistributedRenderer{
             void sendUpdate();
 
             void checkNetwork();
+
 	};
 
     class Remote : public NetworkNode{
@@ -93,9 +103,9 @@ namespace DistributedRenderer{
 
 			void setClip(BinaryInput& bi);
             void setClip(uint32 y, uint32 height);
+			
+			void onConnect() override;
 
-            void onConnect() override;
-            
         public:
             Remote(RApp& app, bool headless_mode);
             void receive();
