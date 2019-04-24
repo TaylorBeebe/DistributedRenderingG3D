@@ -33,9 +33,9 @@ namespace DistributedRenderer{
 
             // send empty packet with type
             void send(PacketType t){
-				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-				bo.writeBool8(1);
-                connection->send(t, bo, 0);
+				//BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				//bo.writeBool8(1);
+                connection->send(t, *BinaryUtils::empty(), 0);
             }
 
 			virtual void onConnect() {}

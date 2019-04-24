@@ -84,7 +84,7 @@ namespace DistributedRenderer{
         ms_to_deadline = 1000 / Constants::FRAMERATE;
 
         // serialize 
-        BinaryOutput& batch = BinaryUtils::empty();
+		BinaryOutput batch ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
         batch.beginBits();
 
@@ -110,7 +110,7 @@ namespace DistributedRenderer{
         batch.endBits();
 
         // net message send batch to router ip
-        send(PacketType::UPDATE, BinaryUtils::toBinaryOutput(current_batch_id), batch);
+        send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), batch);
 
         // clear recently used
         // changed_entities.erase();

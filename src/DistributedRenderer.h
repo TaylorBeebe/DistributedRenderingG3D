@@ -19,6 +19,8 @@ using namespace G3D;
 
 namespace DistributedRenderer{
 
+	class RApp {};
+
     namespace Constants {
 
         // display
@@ -98,39 +100,33 @@ namespace DistributedRenderer{
     class BinaryUtils {
         public:
 				
-			static BinaryOutput& empty() {
-				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+			static BinaryOutput* empty() {
+				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				bo->writeBool8(1);
 				return bo;
-
-				//return BinaryUtils::toBinaryOutput((uint32) 0);
 			}
 
-            static BinaryOutput& toBinaryOutput(uint32 i) {
-                BinaryOutput bo ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-                bo.writeUInt32(i);
+            static BinaryOutput* toBinaryOutput(uint32 i) {
+                BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+                bo->writeUInt32( i);
                 return bo;
             }
 
-            static BinaryOutput& toBinaryOutput(uint32 list[]) {
-				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);;
-
-				bo.beginBits();
+            static BinaryOutput* toBinaryOutput(uint32 list[]) {
+				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);;
 
 				int length = sizeof(list) / sizeof(uint32);
-				for (int i = 0; i < length; i++) bo.writeUInt32(list[i]);
+				for (int i = 0; i < length; i++) bo->writeUInt32(list[i]);
                 
-                bo.endBits();
-
                 return bo;
             }
 
-            static BinaryOutput& toBinaryOutput(BinaryInput& in) {
-				BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+            static BinaryOutput* toBinaryOutput(BinaryInput* in) {
+				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
-                bo.beginBits();
-                bo.writeBits((uint32) in.getCArray(), in.getLength());
-                bo.endBits();
-
+				// copy all bytes
+				while (in->hasMore()) bo->writeInt8(in->readInt8());
+				
                 return bo;
             }
 	};
