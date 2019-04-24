@@ -124,7 +124,8 @@ void addRemote(shared_ptr<NetConnection> conn){
 	remote_connection_registry[id] = cv;
 
     // acknowledge
-    conn->send(PacketType::ACK, BinaryUtils::empty(), BinaryUtils::empty(), 0);
+	
+    conn->send(PacketType::ACK, BinaryUtils::empty(), 0);
 
     cout << "Remote node with address " << id << " registered" << endl;
 }
@@ -270,12 +271,14 @@ void listenAndRegister () {
     RealTime tolerance = System::time(); 
 
     // listen until the client responds, and if the client responded wait until the tolerance is exceeded
-    // then just use whatever was registered. If there were no remote nodes, we'll just terminate in main
+    // then just use whatever nodes were registered. If there were no remote nodes, it will terminate in main
     while (client == NULL || System::time() < tolerance) {
         for(NetConnectionIterator niter = server->newConnectionIterator(); niter.isValid(); ++niter){
             shared_ptr<NetConnection> conn = niter.connection();
+			cout << conn->address().ip() << endl;
             for (NetMessageIterator miter = conn->incomingMessageIterator(); miter.isValid(); ++miter) {
                 try {
+					cout << miter.type() << endl;
                     switch(miter.type()){
                         case PacketType::HI_AM_REMOTE:
                             addRemote(conn);
@@ -368,7 +371,8 @@ int main(){
 
     server = NetServer::create(Constants::ROUTER_ADDR, 32, 1);
 
-    cout << "Waiting for routers..." << endl;
+	cout << "Server initialized" << endl;
+    cout << "Waiting for connections..." << endl;
 
     // registration phase
     router_state = REGISTRATION; 
