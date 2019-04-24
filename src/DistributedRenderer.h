@@ -19,6 +19,8 @@ using namespace G3D;
 
 namespace DistributedRenderer{
 
+	class RApp {};
+
     namespace Constants {
 
         // display
