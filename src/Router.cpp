@@ -168,10 +168,6 @@ void stitch(Image& fragment, uint32 x, uint32 y) {}
 //                Networking
 // =========================================
 
-void broadcast(PacketType t, bool include_client) {
-	broadcast(t, *BinaryUtils::empty(), *BinaryUtils::empty(), include_client);
-}
-
 void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client) {
 
 	cout << "Broadcasting message..." << endl;
@@ -183,6 +179,10 @@ void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool incl
 	for (iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++) {
 		iter->second->connection->send(t, body, header, 0);
 	}
+}
+
+void broadcast(PacketType t, bool include_client) {
+	broadcast(t, *BinaryUtils::empty(), *BinaryUtils::empty(), include_client);
 }
 
 void terminateConnections() {
@@ -273,6 +273,10 @@ void listenAndRegister () {
     while (client == NULL || System::time() < tolerance) {
         for(NetConnectionIterator niter = server->newConnectionIterator(); niter.isValid(); ++niter){
             shared_ptr<NetConnection> conn = niter.connection();
+
+			// for some reason it will not read the messages without this print, might be something with initializing the connection
+			cout << conn->address().ip() << endl;
+
             for (NetMessageIterator miter = conn->incomingMessageIterator(); miter.isValid(); ++miter) {
                 try {
                     switch(miter.type()){
