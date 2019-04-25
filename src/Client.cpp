@@ -80,8 +80,8 @@ namespace DistributedRenderer{
 	// or else the client will use a low qual render instead
     void Client::sendUpdate(){
 
+        // new batch id
         current_batch_id++;
-        ms_to_deadline = 1000 / Constants::FRAMERATE;
 
         // serialize 
 		BinaryOutput batch ("<memory>", G3DEndian::G3D_BIG_ENDIAN);

@@ -102,8 +102,6 @@ void addClient(shared_ptr<NetConnection> conn){
     if (client != NULL) return;
 
     client = conn; 
-    // acknowledge
-    conn->send(PacketType::ACK, *BinaryUtils::empty(), 0);
 }
 
 void addRemote(shared_ptr<NetConnection> conn){
@@ -122,10 +120,6 @@ void addRemote(shared_ptr<NetConnection> conn){
 
 	cv->connection = conn;
 	remote_connection_registry[id] = cv;
-
-    // acknowledge
-	
-    conn->send(PacketType::ACK, *BinaryUtils::empty(), 0);
 
     cout << "Remote node with address " << id << " registered" << endl;
 }
@@ -279,10 +273,8 @@ void listenAndRegister () {
     while (client == NULL || System::time() < tolerance) {
         for(NetConnectionIterator niter = server->newConnectionIterator(); niter.isValid(); ++niter){
             shared_ptr<NetConnection> conn = niter.connection();
-			cout << conn->address().ip() << endl;
             for (NetMessageIterator miter = conn->incomingMessageIterator(); miter.isValid(); ++miter) {
                 try {
-					cout << miter.type() << endl;
                     switch(miter.type()){
                         case PacketType::HI_AM_REMOTE:
                             addRemote(conn);

@@ -61,8 +61,7 @@ namespace DistributedRenderer{
         READY,
         TERMINATE,
         HI_AM_REMOTE,
-        HI_AM_CLIENT,
-        ACK
+        HI_AM_CLIENT
     };
 
     // =========================================
@@ -90,11 +89,6 @@ namespace DistributedRenderer{
 
 		return false;
     }
-
-//	class RApp {
-//		public:
-//			int a = 1;
-//	};
 
     // easy conversion of data types to BinaryOutputs
     class BinaryUtils {

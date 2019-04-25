@@ -23,7 +23,7 @@ RApp::RApp(const GApp::Settings& settings, NodeType type){
 }
 
 void RApp::onRun(){
-	if (window()->requiresMainLoop()) {
+	if (window()->requiresMainLoop()) { // this should never be free
 
         // The window push/pop will take care of
         // calling beginRun/oneFrame/endRun for us.
@@ -33,6 +33,9 @@ void RApp::onRun(){
         beginRun();
 
         debugAssertGLOk();
+
+        // initialize the connection and wait for the ready
+        node.init_connection();
 
         if(node.type == NodeType::CLIENT){
 	        // Main loop
@@ -179,6 +182,15 @@ void RApp::oneFrame() {
         m_simulationWatch.tock();
             END_PROFILER_EVENT();
     }
+
+    Client client = (Client) node;
+    // after the simulation period, we will wait until our sands are run    
+    RealTime deadline = timeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
+    
+    // send the update
+    client.sendUpdate();
+
+    while(timeStep <= deadline) client.checkNetwork();
 
     // Pose
     BEGIN_PROFILER_EVENT("Pose");
