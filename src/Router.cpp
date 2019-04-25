@@ -1,5 +1,6 @@
 #include <G3D/G3D.h>
 #include "DistributedRenderer.h"
+#include <list>
 
 using namespace std;
 using namespace DistributedRenderer;
@@ -268,15 +269,22 @@ void listenAndRegister () {
     // default waiting period, won't matter because condition will short circuit
     RealTime tolerance = System::time(); 
 
+	// cache connected machines 
+	list<shared_ptr<NetConnection>> connections;
+
     // listen until the client responds, and if the client responded wait until the tolerance is exceeded
     // then just use whatever nodes were registered. If there were no remote nodes, it will terminate in main
     while (client == NULL || System::time() < tolerance) {
-        for(NetConnectionIterator niter = server->newConnectionIterator(); niter.isValid(); ++niter){
-            shared_ptr<NetConnection> conn = niter.connection();
+		// If we directly check the message iterator after we get the connection, it will not always
+		// give us the messages even though it has them because it hasn't initialized its NetServerSideConnection
+		// so we just cache the connection and always recheck it afterwards
+		for (NetConnectionIterator niter = server->newConnectionIterator(); niter.isValid(); ++niter) {
+			shared_ptr<NetConnection> conn = niter.connection();
+			connections.push_back(conn);
+		}
 
-			// for some reason it will not read the messages without this print, might be something with initializing the connection
-			cout << conn->address().ip() << endl;
-
+		for (list<shared_ptr<NetConnection>>::iterator it = connections.begin(); it != connections.end(); ++it) {
+			shared_ptr<NetConnection> conn = *it;
             for (NetMessageIterator miter = conn->incomingMessageIterator(); miter.isValid(); ++miter) {
                 try {
                     switch(miter.type()){
