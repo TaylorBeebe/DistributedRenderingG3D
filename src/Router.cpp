@@ -163,7 +163,7 @@ void configureScreenSplit(){
 
 void flushPixelBuffer() {}
 
-void stitch(Image& fragment, uint32 x, uint32 y) {}
+void stitch(remote_connection_t* conn_vars, Image& fragment) {}
 
 // =========================================
 //                Networking
@@ -236,7 +236,7 @@ void rerouteUpdate(BinaryInput& header, BinaryInput& body) {
               false);
 }
 
-void handleFragment(BinaryInput& header, BinaryInput& body) {
+void handleFragment(remote_connection_t* conn_vars, BinaryInput& header, BinaryInput& body) {
 
     header.beginBits();
     uint32 batch_id = header.readUInt32();
@@ -352,7 +352,7 @@ void receive(){
                     switch(iter.type()){
                         case PacketType::FRAGMENT: // a frame fragment
                             cout << "remote " << conn_vars->id << "answered, total: " << (pieces + 1) << "/" << remote_connection_registry.size() << endl;
-                            handleFragment(iter.headerBinaryInput(), iter.binaryInput());
+                            handleFragment(conn_vars, iter.headerBinaryInput(), iter.binaryInput());
                             break;
                         case PacketType::CONFIG_RECEIPT: // a receipt of configs
 							tallyConfigs(conn_vars);
@@ -375,7 +375,6 @@ int main(){
 	initG3D();
 
     cout << "Router started up" << endl;
-    cout << "Initializing server..." << endl;
 
     server = NetServer::create(Constants::ROUTER_ADDR, 32, 1);
 
@@ -392,6 +391,8 @@ int main(){
     if(remote_connection_registry.size() == 0) cout << "No remote nodes were registered." << endl;   
     else if (client == NULL) cout << "Client was NULL" << endl;
     else {
+        cout << "Connections established. Configuring remote nodes..." << endl;
+
         // calculate screen data
         configureScreenSplit();
         // poll network for updates ad infintum

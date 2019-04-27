@@ -14,21 +14,21 @@ namespace DistributedRenderer{
 
         bool server_online = false;
 
-        // wait for a ready
+        // busy wait for a ready
         while (isConnected()) {
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
                     case PacketType::READY:
 						// exit so the app can run
                         return;
-                    default:
-						cout << "AckED" << endl;
-						break;
+                    default: break;
                 }
             }
         }
     }
 
+    // checks the network once and handles all available messages
+    // wrap in a loop to repeatedly poll the network
     void Client::checkNetwork(){
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
