@@ -8,12 +8,12 @@ namespace DistributedRenderer{
 
     void Remote::onConnect() {
 
-		cout << "sending introduction" << endl;
+		cout << "Connected to router" << endl;
 
         // send router intoduction
         send(PacketType::HI_AM_REMOTE);
 
-		cout << "sent intro, waiting for response..." << endl;
+		cout << "Awaiting configuration" << endl;
 
         bool server_online = false;
 
@@ -23,13 +23,17 @@ namespace DistributedRenderer{
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
                     case PacketType::CONFIG:
-                        cout << "CONFIG received" << endl;
+                        cout << "Received CONFIG, configuring..." << endl;
                         setClip(iter.binaryInput());
                         send(PacketType::CONFIG_RECEIPT);
                         break;
                     case PacketType::READY:
 						cout << "Network is ready" << endl;
                         return;
+					case PacketType::TERMINATE:
+						cout << "Network was terminated" << endl;
+						// the_app.terminate(); or something
+						return;
                     default:
 						cout << "got an ack" << endl;
 						break;

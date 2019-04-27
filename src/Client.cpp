@@ -9,15 +9,21 @@ namespace DistributedRenderer{
     Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, app, false) {}
 
     void Client::onConnect() {
-        // send router intoduction
-        send(PacketType::HI_AM_CLIENT);
+		
+		cout << "Connected to router" << endl;
 
-        bool server_online = false;
+        send(PacketType::HI_AM_CLIENT);
+		
+		cout << "Awaiting ready signal" << endl;
 
         // busy wait for a ready
         while (isConnected()) {
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
+					case PacketType::TERMINATE:
+						// the_app.terminate(); or something
+						cout << "Network was terminated" << endl;
+						return;
                     case PacketType::READY:
 						// exit so the app can run
                         return;
