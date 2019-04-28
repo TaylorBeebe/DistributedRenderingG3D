@@ -19,9 +19,15 @@ RApp::RApp(const GApp::Settings& settings, NodeType type){
 
 	GApp(settings, &window, rd, true);
 
-	if(type == NodeType::REMOTE) network_node.finishedSetup();
+    // now that the scene is set up, we can register all the entities
+    if(scene()){
+        array<shared_ptr<Entity>> entities = new array<shared_ptr<Entity>>();
+        scene()->getEntityArray(*entities);
+        node.trackEntities(entities);
+    }
 }
 
+// run is the next thing after the constructor finishes
 void RApp::onRun(){
 	if (window()->requiresMainLoop()) { // this should never be free
 
@@ -44,7 +50,7 @@ void RApp::onRun(){
 	        } while (! m_endProgram); 
 	    }else{
             // Busy wait for a message then do a render
-            // This can be improves in the future (and should be) with thread sleeping
+            // This can be improves in the future (and should be) by making the thread sleep
 	    	do {
 	    		((Remote) network_node).receive();
 	    	} while (! m_endProgram);

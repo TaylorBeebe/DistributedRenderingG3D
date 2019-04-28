@@ -76,9 +76,9 @@ namespace DistributedRenderer{
     }
 
     // Use this method to mark an entity to be updated on the network
-    void Client::setEntityChanged(uint32 id){
+    void Client::setEntityChanged(Entity e){
         // safety check
-        changed_entities.insert(id);
+        changed_entities.insert(getEntityIDByName(e.name()));
     }
 
 	// send an update on the network with a batch ID
@@ -92,13 +92,11 @@ namespace DistributedRenderer{
         // serialize 
 		BinaryOutput batch ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
-        batch.beginBits();
-
         // this currently loops through every entity
         // this is inefficient and should be improved such that we only iterate through a 
         // set of ids that were changed
-        for (map<unsigned int, Entity*>::iterator it = entityRegistry.begin(); it!=entityRegistry.end(); ++it){
-            Entity* ent = it->second;
+        for (Array<shared_ptr<Entity>>::iterator it = entityRegistry.begin(); it != entityRegistry.end(); ++it){
+            shared_ptr<Entity> ent = it->second;
 
             float x,y,z,yaw,pitch,roll;
             ent->frame().getXYZYPRRadians(x,y,z,yaw,pitch,roll);
@@ -112,8 +110,6 @@ namespace DistributedRenderer{
 			batch.writeFloat32(roll);
 
         }
-
-        batch.endBits();
 
         // net message send batch to router ip
         send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), batch);
