@@ -7,7 +7,7 @@ G3D_START_AT_MAIN();
 int main(int argc, const char* argv[]) {
     initGLG3D();
 
-    GApp::Settings settings(argc, argv);
+    DistributedRenderer::RApp::Settings settings(argc, argv);
     
     settings.window.caption     = argv[0];
     settings.window.width       = 1280; 
@@ -17,12 +17,12 @@ int main(int argc, const char* argv[]) {
 }
 
 
-App::App(const GApp::Settings& settings) : GApp(settings) {
+App::App(const RApp::Settings& settings) : RApp(settings) {
 }
 
 
 void App::onInit() {
-    GApp::onInit();
+    RApp::onInit();
 
     m_gbufferSpecification.encoding[GBuffer::Field::DEPTH_AND_STENCIL]  = ImageFormat::DEPTH32();
     m_gbufferSpecification.depthEncoding = DepthEncoding::HYPERBOLIC;
@@ -69,19 +69,19 @@ void App::makeGUI() {
 
 
 void App::onAI() {
-    GApp::onAI();
+    RApp::onAI();
     // Add non-simulation game logic and AI code here
 }
 
 
 void App::onNetwork() {
-    GApp::onNetwork();
+    RApp::onNetwork();
     // Poll net messages here
 }
 
 
 void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
-    GApp::onSimulation(rdt, sdt, idt);
+    RApp::onSimulation(rdt, sdt, idt);
 
     if (m_firstPersonMode) {
         const shared_ptr<PlayerEntity>& p = m_scene->typedEntity<PlayerEntity>(m_playerName);
@@ -103,7 +103,7 @@ void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
 
 bool App::onEvent(const GEvent& event) {
     // Handle super-class events
-    if (GApp::onEvent(event)) { return true; }
+    if (RApp::onEvent(event)) { return true; }
 
     if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey::TAB)) {
         m_firstPersonMode = ! m_firstPersonMode;
@@ -117,7 +117,7 @@ bool App::onEvent(const GEvent& event) {
 
 void App::onUserInput(UserInput* ui) {
     
-    GApp::onUserInput(ui);
+    RApp::onUserInput(ui);
     ui->setPureDeltaMouse(m_firstPersonMode);
     if (m_firstPersonMode) {
         const shared_ptr<PlayerEntity>& player = m_scene->typedEntity<PlayerEntity>(m_playerName);
