@@ -19,12 +19,11 @@ namespace DistributedRenderer{
             // <- render device
 
             // Each entity in the scene will have a registered network ID
-            // which will be synced across the network at setup so that at 
-            // runtime transform data can be synced 
-            map<uint32, Entity*> entityRegistry;
-
-            // maybe use a unique id later
-            uint net_nonce = 0;
+            // which should be the same over all instances of the application 
+            // then at runtime, transforms will be synced across the network
+            // before rendering a frame
+            array<shared_ptr<Entity>> entities;
+            map<String, uint32> entity_index_by_name;
 
             shared_ptr<NetConnection> connection; 
 
@@ -34,8 +33,6 @@ namespace DistributedRenderer{
 
             // send empty packet with type
             void send(PacketType t){
-				//BinaryOutput bo("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-				//bo.writeBool8(1);
                 connection->send(t, *BinaryUtils::empty(), 0);
             }
 
@@ -56,21 +53,33 @@ namespace DistributedRenderer{
 				return false;
 			}
 
-            // @pre: expects pointer to Entity or subclass of Entity (cast as Entity)
-            // @post: creates network ID for entity and stores reference to it
-            // @returns: network ID of entity 
-            uint32 registerEntity(Entity* e){
-                entityRegistry[net_nonce] = e;
-                return net_nonce++;
-            } 
-
             bool isTypeOf(NodeType t){ return t == type; }
 
             bool isConnected() { 
 				NetConnection::NetworkStatus status = connection->status();
 				return connection != NULL && (status == NetConnection::CONNECTED || status == NetConnection::JUST_CONNECTED); 
 			}
+
 			bool isHeadless() { return headless; }
+
+            // register all entities to be tracked by the network 
+            // currently, this does not support adding or removing entities
+            void trackEntities(array<shared_ptr<Entity>>* e) {
+                entities = *e;
+                // make an ID lookup for tracking
+                for(uint32 i = 0; i < entities.size(); i++){
+                    entity_index_by_name[entities[i].name()] = i;
+                }
+            }
+
+            uint32 getEntityIDByName(String name){
+                return entity_index_by_name[name];
+            }
+
+            shared_ptr<Entity> getEntityByID(uint32 id){
+                return entityRegistry[id];
+            }
+
 	};
 
     class Client : public NetworkNode{

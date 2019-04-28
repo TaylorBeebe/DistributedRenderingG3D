@@ -64,7 +64,7 @@ using namespace G3D;
 enum RouterState {
     OFFLINE,
     REGISTRATION,
-    CONFIG,
+    CONFIG_STAGE,
     RUNNING,
     TERMINATED
 };
@@ -143,11 +143,13 @@ void configureScreenSplit(){
 		remote_connection_t* cv = iter->second;
 
         // send the config data
-		uint32 conf_attrs[] = { curr_y, frag_height };
-        BinaryOutput* config = BinaryUtils::toBinaryOutput( conf_attrs );
+        BinaryOutput config ( "<memory>", G3DEndian::G3D_BIG_ENDIAN );
 
-        cout << "Sending CONFIG packet to Remote Node " << cv->id << endl;
-        cv->connection->send(PacketType::CONFIG, *BinaryUtils::empty(), *config, 0);
+        config->writeUInt32(curr_y);
+        config->writeUInt32(frag_height);
+
+        cout << "Sending CONFIG packet to Remote Node " << cv->id << " offset_y: " << curr_y << ", height: " << frag_height << endl;
+        cv->connection->send(PacketType::CONFIG, *BinaryUtils::empty(), config, 0);
 
         // store internal record
         cv->y = curr_y;
@@ -386,7 +388,7 @@ int main(){
     listenAndRegister();
 
     // config phase
-    router_state = RouterState::CONFIG;
+    router_state = CONFIG_STAGE;
 
     if(remote_connection_registry.size() == 0) cout << "No remote nodes were registered." << endl;   
     else if (client == NULL) cout << "Client was NULL" << endl;

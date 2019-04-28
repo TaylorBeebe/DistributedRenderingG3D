@@ -34,9 +34,9 @@ namespace DistributedRenderer{
 						cout << "Network was terminated" << endl;
 						// the_app.terminate(); or something
 						return;
-                    default:
-						cout << "got an ack" << endl;
-						break;
+                    default: 
+                        cout << "Received unexpected packet" << endl;s
+                        break;
                 }
             }
         }
@@ -47,10 +47,8 @@ namespace DistributedRenderer{
     }
 
 	void Remote::setClip(BinaryInput& bi) {
-		bi.beginBits();
 		uint32 y = bi.readUInt32();
 		uint32 h = bi.readUInt32();
-		bi.endBits();
 
 		setClip(y, h);
 	}
@@ -104,10 +102,8 @@ namespace DistributedRenderer{
 
         cout << "Syncing update..." << endl;
 
-        update.beginBits();
-
         while(update.hasMore()){
-            uint id = update.readUInt32();
+            uint32 id = update.readUInt32();
             float x = update.readFloat32();
             float y = update.readFloat32();
             float z = update.readFloat32();
@@ -115,10 +111,8 @@ namespace DistributedRenderer{
             float pitch = update.readFloat32();
             float roll = update.readFloat32();
 
-            entityRegistry[id]->frame().fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
+            getEntityByID(id)->frame().fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
         }
-
-        update.endBits();
     }
 
     // @pre: the current batch id

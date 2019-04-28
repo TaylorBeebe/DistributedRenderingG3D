@@ -6,7 +6,6 @@
 //#include <time.h>
 #include <mutex>
 
-
 static const float BACKGROUND_FRAME_RATE = 4.0;
 
 namespace DistributedRenderer {
@@ -18,7 +17,7 @@ namespace DistributedRenderer {
 		RenderDevice* rd;
 
 
-		//WARNING: This is downcasting because network_node is type NetworkNode. 
+		//WARNING: This is downcasting because network_node is type NetworkNode.
 		//Check with Michael to see if there's a better way to go about this.
 
 		// create node
@@ -30,6 +29,14 @@ namespace DistributedRenderer {
 
 		//WARNING: No member "finishedSetup()"
 		//if (type == NodeType::REMOTE) network_node.finishedSetup();
+
+		// now that the scene is set up, we can register all the entities
+		if(scene()) {
+		array<shared_ptr<Entity>> entities = new array<shared_ptr<Entity>>();
+		scene()->getEntityArray(*entities);
+		node.trackEntities(entities);
+		}
+
 	}
 
 
@@ -38,6 +45,7 @@ namespace DistributedRenderer {
 	{
 	}
 
+	// run is the next thing after the constructor finishes
 	void RApp::onRun() {
 		if (window()->requiresMainLoop()) { // this should never be free
 
@@ -62,14 +70,14 @@ namespace DistributedRenderer {
 			}
 			else {
 				// Busy wait for a message then do a render
-				// This can be improved in the future (and should be) with thread sleeping
+				// This can be improved in the future (and should be) by making the thread sleep
 				do {
 
 
 					//WARNING: This is downcasting. Check with Michael to see if there's a better way to go about this.
 					((Remote)network_node).receive();
-				
-				
+
+
 				} while (!m_endProgram);
 			}
 
@@ -80,8 +88,8 @@ namespace DistributedRenderer {
 	// Similar to oneFrame, this method will call overridden app methods for pose
 	// and graphics. This method will only be called by a remote node when it receives
 	// network updates that request a render
-	// 
-	// the call to onGraphics will trigger whatever the developer specified in 
+	//
+	// the call to onGraphics will trigger whatever the developer specified in
 	// onGraphics2D and onGraphics3D. If a remote is in headless mode, draw requests
 	// will be ignored on the render device
 	void RApp::oneFrameAdHoc() {
@@ -155,7 +163,7 @@ namespace DistributedRenderer {
 			Profiler::nextFrame();
 			m_lastTime = m_now;
 			m_now = System::time();
-			
+
 
 			// User input
 			m_userInputWatch.tick();
@@ -211,7 +219,7 @@ namespace DistributedRenderer {
 		}
 
 		Client client = (Client)node;
-		// after the simulation period, we will wait until our sands are run    
+		// after the simulation period, we will wait until our sands are run
 		RealTime deadline = timeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
 
 		// send the update
@@ -237,7 +245,7 @@ namespace DistributedRenderer {
 		// Note: we might end up spending all of our time inside of
 		// RenderDevice::beginFrame.  Waiting here isn't double waiting,
 		// though, because while we're sleeping the CPU the GPU is working
-		// to catch up.    
+		// to catch up.
 		//BEGIN_PROFILER_EVENT("Wait");
 		m_waitWatch.tick(); {
 			RealTime nowAfterLoop = System::time();
@@ -360,4 +368,3 @@ namespace DistributedRenderer {
 	}
 
 }
-

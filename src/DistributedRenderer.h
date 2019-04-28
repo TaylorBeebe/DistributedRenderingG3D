@@ -6,6 +6,7 @@
 #include <set>
 #include <iostream>
 #include <string>
+#include <array>
 
 using namespace G3D;
 
@@ -69,7 +70,8 @@ namespace DistributedRenderer{
     //                   Utils
     // =========================================
 
-    // wait on a connection
+    // Connect to an address and store result in a NetConnection
+    // @return: false if failed or timed out, true if successful
     static bool connect(NetAddress& addr, shared_ptr<NetConnection>* conn){
 
 		try {
@@ -91,31 +93,27 @@ namespace DistributedRenderer{
 		return false;
     }
 
-    // easy conversion of data types to BinaryOutputs
+    // Easy conversion of data types to BinaryOutputs
+    // @return: We must return a pointer to the newly contructed BinaryOutputs,
+    // if we don't, the memory will be lost
     class BinaryUtils {
         public:
-				
+			
+            // Make a simple, small "empty" packet for quick message sending
 			static BinaryOutput* empty() {
 				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 				bo->writeBool8(1);
 				return bo;
 			}
 
+            // Write a single unsigned integer to a binary output
             static BinaryOutput* toBinaryOutput(uint32 i) {
                 BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-                bo->writeUInt32( i);
+                bo->writeUInt32(i);
                 return bo;
             }
 
-            static BinaryOutput* toBinaryOutput(uint32 list[]) {
-				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);;
-
-				int length = sizeof(list) / sizeof(uint32);
-				for (int i = 0; i < length; i++) bo->writeUInt32(list[i]);
-                
-                return bo;
-            }
-
+            // Convery a BinaryInput to a BinaryOutput
             static BinaryOutput* toBinaryOutput(BinaryInput* in) {
 				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
