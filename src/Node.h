@@ -9,12 +9,13 @@ namespace DistributedRenderer{
 
     // NODE CLASS
     class NetworkNode{
+
         protected:
             NodeType type; 
 
 			bool headless;
 
-            RApp& the_app;
+			RApp& the_app;
             // <- render device
 
             // Each entity in the scene will have a registered network ID

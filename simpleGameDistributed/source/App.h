@@ -2,11 +2,11 @@
 #define App_h
 
 #include <G3D/G3D.h>
-#include "../../src/RApp.h"
+#include <RApp.h>
 
 class PhysicsScene;
 
-class App : public RApp {
+class App : public DistributedRenderer::RApp {
 protected:
 
     bool                        m_firstPersonMode;
@@ -20,7 +20,7 @@ protected:
 
 public:
     
-    App(const GApp::Settings& settings = GApp::Settings());
+    App(const RApp::Settings& settings = RApp::Settings());
 
     virtual void onInit() override;
     virtual void onAI() override;

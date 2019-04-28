@@ -10,6 +10,8 @@
 
 using namespace G3D;
 
+class RApp;
+
 // ********** COMPUTERS **********
 // 1 -- 137.165.8.92
 // 2 -- 137.165.8.62
@@ -19,8 +21,6 @@ using namespace G3D;
 // *******************************
 
 namespace DistributedRenderer{
-
-	class RApp {};
 
     namespace Constants {
 
