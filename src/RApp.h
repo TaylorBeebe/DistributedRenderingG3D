@@ -37,7 +37,7 @@ namespace DistributedRenderer {
 			SubmitToDisplayMode             m_submitToDisplayMode;
 
         protected:
-            NetworkNode network_node;
+            NetworkNode* network_node;
 
         public:
 

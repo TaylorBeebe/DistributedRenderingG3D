@@ -15,14 +15,14 @@ namespace DistributedRenderer{
 
 			bool headless;
 
-			RApp& the_app;
+			RApp* the_app;
             // <- render device
 
             // Each entity in the scene will have a registered network ID
             // which should be the same over all instances of the application 
             // then at runtime, transforms will be synced across the network
             // before rendering a frame
-            array<shared_ptr<Entity>> entities;
+            Array<shared_ptr<Entity>> entities;
             map<String, uint32> entity_index_by_name;
 
             shared_ptr<NetConnection> connection; 
@@ -39,7 +39,7 @@ namespace DistributedRenderer{
 			virtual void onConnect() {}
 
         public:
-            NetworkNode(NodeType t, RApp& app, bool head) : type(t), the_app(app), headless(head) {}
+            NetworkNode(NodeType t, RApp* app, bool head) : type(t), the_app(app), headless(head) {}
 
 			bool init_connection(NetAddress router_address) {
 				
@@ -64,11 +64,11 @@ namespace DistributedRenderer{
 
             // register all entities to be tracked by the network 
             // currently, this does not support adding or removing entities
-            void trackEntities(array<shared_ptr<Entity>>* e) {
+            void trackEntities(Array<shared_ptr<Entity>>* e) {
                 entities = *e;
                 // make an ID lookup for tracking
                 for(uint32 i = 0; i < entities.size(); i++){
-                    entity_index_by_name[entities[i].name()] = i;
+                    entity_index_by_name[entities[i]->name()] = i;
                 }
             }
 
@@ -77,7 +77,7 @@ namespace DistributedRenderer{
             }
 
             shared_ptr<Entity> getEntityByID(uint32 id){
-                return entityRegistry[id];
+                return entities[id];
             }
 
 	};
@@ -94,9 +94,9 @@ namespace DistributedRenderer{
 			void onConnect() override;
 
         public:
-            Client(RApp& app);
+            Client(RApp* app);
             
-            void setEntityChanged(uint32 id);
+            void setEntityChanged(shared_ptr<Entity> e);
             void sendUpdate();
 
             void checkNetwork();
@@ -116,7 +116,7 @@ namespace DistributedRenderer{
 			void onConnect() override;
 
         public:
-            Remote(RApp& app, bool headless_mode);
+            Remote(RApp* app, bool headless_mode);
             void receive();
 	};
 }

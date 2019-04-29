@@ -4,7 +4,7 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Remote::Remote(RApp& app, bool headless_mode) : NetworkNode(NodeType::REMOTE, app, headless_mode) {}
+    Remote::Remote(RApp* app, bool headless_mode) : NetworkNode(NodeType::REMOTE, app, headless_mode) {}
 
     void Remote::onConnect() {
 

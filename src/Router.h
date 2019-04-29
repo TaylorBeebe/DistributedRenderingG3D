@@ -61,76 +61,74 @@ using namespace G3D;
  */
 
 namespace DistributedRenderer{
-namespace Router{
+	namespace Router{
+		enum RouterState {
+		    OFFLINE,
+		    IDLE,
+		    REGISTRATION,
+		    CONFIGURATION,
+		    LISTENING,
+		    TERMINATED
+		};
 
-	enum RouterState {
-	    OFFLINE,
-	    IDLE,
-	    REGISTRATION,
-	    CONFIGURATION,
-	    LISTENING,
-	    TERMINATED
-	};
+		typedef struct {
+		    bool configured;
+		    uint32 id;
+		    uint32 y;
+		    uint32 h;
+		    shared_ptr<NetConnection> connection;
+		} remote_connection_t;
 
-	typedef struct {
-	    bool configured;
-	    uint32 id;
-	    uint32 y;
-	    uint32 h;
-	    shared_ptr<NetConnection> connection;
-	} remote_connection_t;
+		class Router{
+			private:
+				RouterState router_state;
 
-	class Router{
-		private:
-			RouterState router_state;
+				shared_ptr<NetServer> server;
+				shared_ptr<NetConnection> client;
 
-			shared_ptr<NetServer> server;
-			shared_ptr<NetConnection> client;
+				uint32 current_batch;
+				uint32 pieces;
+				// -- some pixel buffer
 
-			uint32 current_batch;
-			uint32 pieces;
-			// -- some pixel buffer
+				// this registry will track remote connections, addressable with IP addresses
+				map<uint32, remote_connection_t*> remote_connection_registry;
 
-			// this registry will track remote connections, addressable with IP addresses
-			map<uint32, remote_connection_t*> remote_connection_registry;
+				// setup
+				void addClient(shared_ptr<NetConnection> conn);
+				void addRemote(shared_ptr<NetConnection> conn);
+				void removeRemote(NetAddress& addr);
 
-			// setup
-			void addClient(shared_ptr<NetConnection> conn);
-			void addRemote(shared_ptr<NetConnection> conn);
-			void removeRemote(NetAddress& addr);
+				void setState(RouterState s) { router_state = s; }
 
-			void setState(RouterState s) { router_state = s; }
+				// frame management
+				void flushPixelBuffer();
+				void stitch(remote_connection_t* conn_vars, Image& fragment);
 
-			// frame management
-			void flushPixelBuffer();
-			void stitch(remote_connection_t* conn_vars, Image& fragment);
+				// networking
+				void broadcast(PacketType t, BinaryOutput* header, BinaryOutput* body, bool include_client);
+				void broadcast(PacketType t, bool include_client);
+				void send(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body);
+				void send(PacketType t, shared_ptr<NetConnection> conn);
 
-			// networking
-			void broadcast(PacketType t, BinaryOutput& header, BinaryOutput& body, bool include_client);
-			void broadcast(PacketType t, bool include_client);
-			void send(PacketType t, BinaryOutput& header, BinaryOutput& body);
-			void send(PacketType t, shared_ptr<NetConnection> conn);
+				void registration();
+				void configuration();
 
-			void registration();
-			void configuration();
+				// packet handlers
+				void rerouteUpdate(BinaryInput& header, BinaryInput& body);
+				void handleFragment(remote_connection_t* conn_vars, BinaryInput& header, BinaryInput& body);
 
-			// packet handlers
-			void rerouteUpdate(BinaryInput& header, BinaryInput& body);
-			void handleFragment(remote_connection_t* conn_vars, BinaryInput& header, BinaryInput& body);
+			public:
+				Router() : pieces(0), current_batch(1000), router_state(OFFLINE) {
+					cout << "Router started up" << endl;
+				}
 
-		public:
-			Router() : pieces(0), current_batch(1000), router_state(OFFLINE) {
-				cout << "Router started up" << endl;
-			}
+				bool setup();
+				void poll();
+				void terminate();
 
-			bool setup();
-			void poll();
-			void terminate();
-
-			// accessors
-			RouterState getState() { return router_state; }
-			uint32 numRemotes() { return remote_connection_registry.size();}
+				// accessors
+				RouterState getState() { return router_state; }
+				uint32 numRemotes() { return remote_connection_registry.size();}
+		};
 	}
-
-}
 }

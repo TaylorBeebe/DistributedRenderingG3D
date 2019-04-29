@@ -21,8 +21,8 @@ namespace DistributedRenderer {
 		//Check with Michael to see if there's a better way to go about this.
 
 		// create node
-		if (type == NodeType::CLIENT) network_node = Client(this);
-		else network_node = Remote(this);
+		if (type == NodeType::CLIENT) network_node = new Client(this);
+		else network_node = new Remote(this);
 
 		G3D::GApp(settings, window, rd, true);
 
@@ -32,14 +32,12 @@ namespace DistributedRenderer {
 
 		// now that the scene is set up, we can register all the entities
 		if(scene()) {
-		array<shared_ptr<Entity>> entities = new array<shared_ptr<Entity>>();
-		scene()->getEntityArray(*entities);
-		node.trackEntities(entities);
+			Array<shared_ptr<Entity>>* entities = new Array<shared_ptr<Entity>>();
+			scene()->getEntityArray(*entities);
+			network_node->trackEntities(entities);
 		}
 
 	}
-
-
 
 	void DistributedRenderer::RApp::onInit()
 	{
@@ -60,9 +58,9 @@ namespace DistributedRenderer {
 			//debugAssertGLOk();
 
 			// initialize the connection and wait for the ready
-			network_node.init_connection();
+			network_node->init_connection(Constants::ROUTER_ADDR);
 
-			if (network_node.type == NodeType::CLIENT) {
+			if (network_node->isTypeOf(NodeType::CLIENT)) {
 				// Main loop
 				do {
 					oneFrame();
@@ -75,7 +73,7 @@ namespace DistributedRenderer {
 
 
 					//WARNING: This is downcasting. Check with Michael to see if there's a better way to go about this.
-					((Remote)network_node).receive();
+					((Remote*) network_node)->receive();
 
 
 				} while (!m_endProgram);
@@ -218,14 +216,14 @@ namespace DistributedRenderer {
 			//END_PROFILER_EVENT();
 		}
 
-		Client client = (Client)node;
+		Client* client = (Client*) network_node;
 		// after the simulation period, we will wait until our sands are run
 		RealTime deadline = timeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
 
 		// send the update
-		client.sendUpdate();
+		client->sendUpdate();
 
-		while (timeStep <= deadline) client.checkNetwork();
+		while (timeStep <= deadline) client->checkNetwork();
 
 		// Pose
 		//BEGIN_PROFILER_EVENT("Pose");
@@ -346,7 +344,7 @@ namespace DistributedRenderer {
 		}
 
 		// only draw 2D graphics can be drawn on the client
-		if (network_node.type == NodeType::CLIENT) {
+		if (network_node->isTypeOf(NodeType::CLIENT)) {
 
 			rd->push2D(); {
 				onGraphics2D(rd, posed2D);

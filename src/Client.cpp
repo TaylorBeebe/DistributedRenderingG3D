@@ -6,7 +6,7 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Client::Client(RApp& app) : NetworkNode(NodeType::CLIENT, app, false) {}
+    Client::Client(RApp* app) : NetworkNode(NodeType::CLIENT, app, false) {}
 
     void Client::onConnect() {
 		
@@ -76,9 +76,9 @@ namespace DistributedRenderer{
     }
 
     // Use this method to mark an entity to be updated on the network
-    void Client::setEntityChanged(Entity e){
+    void Client::setEntityChanged(shared_ptr<Entity> e){
         // safety check
-        changed_entities.insert(getEntityIDByName(e.name()));
+        changed_entities.insert(getEntityIDByName(e->name()));
     }
 
 	// send an update on the network with a batch ID
@@ -90,29 +90,29 @@ namespace DistributedRenderer{
         current_batch_id++;
 
         // serialize 
-		BinaryOutput batch ("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+		BinaryOutput* batch = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
         // this currently loops through every entity
         // this is inefficient and should be improved such that we only iterate through a 
         // set of ids that were changed
-        for (Array<shared_ptr<Entity>>::iterator it = entityRegistry.begin(); it != entityRegistry.end(); ++it){
-            shared_ptr<Entity> ent = it->second;
+        int id = 0;
+        for (Array<shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ++it){
+            shared_ptr<Entity> ent = *it;
 
             float x,y,z,yaw,pitch,roll;
             ent->frame().getXYZYPRRadians(x,y,z,yaw,pitch,roll);
 
-            batch.writeUInt32(it->first);
-			batch.writeFloat32(x);
-			batch.writeFloat32(y);
-			batch.writeFloat32(z);
-			batch.writeFloat32(yaw);
-			batch.writeFloat32(pitch);
-			batch.writeFloat32(roll);
-
+            batch->writeUInt32(id++);
+			batch->writeFloat32(x);
+			batch->writeFloat32(y);
+			batch->writeFloat32(z);
+			batch->writeFloat32(yaw);
+			batch->writeFloat32(pitch);
+			batch->writeFloat32(roll);
         }
 
         // net message send batch to router ip
-        send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), batch);
+        send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
 
         // clear recently used
         // changed_entities.erase();

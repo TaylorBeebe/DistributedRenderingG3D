@@ -1,4 +1,4 @@
-#include Router.h
+#include "Router.h"
 
 using namespace std;
 using namespace DistributedRenderer;
@@ -74,8 +74,8 @@ namespace Router{
 
         // route transform data to all remotes
         broadcast(PacketType::UPDATE, 
-                  *BinaryUtils::toBinaryOutput(&header), 
-                  *BinaryUtils::toBinaryOutput(&body), 
+                  BinaryUtils::toBinaryOutput(&header), 
+                  BinaryUtils::toBinaryOutput(&body), 
                   false);
     }
 
@@ -148,7 +148,7 @@ namespace Router{
     	}
     }
 
-    void registration() {
+    void Router::registration() {
         setState(REGISTRATION);
 
         // default waiting period, won't matter because condition will short circuit
@@ -191,7 +191,7 @@ namespace Router{
         } // end while
     }
 
-    void configuration() {
+    void Router::configuration() {
         setState(CONFIGURATION);
 
         // TODO: if the screen height is not perfectly divisble by the number of nodes, give the remaining pixels
@@ -205,13 +205,13 @@ namespace Router{
             remote_connection_t* cv = iter->second;
 
             // send the config data
-            BinaryOutput config ( "<memory>", G3DEndian::G3D_BIG_ENDIAN );
+            BinaryOutput* config = new BinaryOutput( "<memory>", G3DEndian::G3D_BIG_ENDIAN );
 
             config->writeUInt32(curr_y);
             config->writeUInt32(frag_height);
 
             cout << "Sending CONFIG packet to Remote Node " << cv->id << " offset_y: " << curr_y << ", height: " << frag_height << endl;
-            send(PacketType::CONFIG, cv->connection, BinaryUtils::empty(), &config);
+            send(PacketType::CONFIG, cv->connection, BinaryUtils::empty(), config);
 
             // store internal record
             cv->y = curr_y;
@@ -221,6 +221,7 @@ namespace Router{
         }
 
         int configurations = 0;
+        map<uint32, remote_connection_t*>::iterator remotes;
 
         while(router_state != TERMINATED){
             for(remotes = remote_connection_registry.begin(); remotes != remote_connection_registry.end(); remotes++){
@@ -288,10 +289,8 @@ namespace Router{
     // This receive method will check for available messages forever unless a connection is compromised,
     // it will check every connection in the remote connection registry and the client connection
     // then call whatever code is specified with that message type
-    //
-    // This will only work with packets that have a body AND a header
     void Router::poll(){
-        setState(RUNNING);
+        setState(LISTENING);
 
         map<uint32, remote_connection_t*>::iterator remotes;
 
