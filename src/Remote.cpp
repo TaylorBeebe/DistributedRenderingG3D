@@ -35,7 +35,7 @@ namespace DistributedRenderer{
 						// the_app.terminate(); or something
 						return;
                     default: 
-                        cout << "Received unexpected packet" << endl;s
+                        cout << "Received unexpected packet" << endl;
                         break;
                 }
             }

@@ -67,7 +67,7 @@ namespace DistributedRenderer{
             void trackEntities(Array<shared_ptr<Entity>>* e) {
                 entities = *e;
                 // make an ID lookup for tracking
-                for(uint32 i = 0; i < entities.size(); i++){
+                for(int i = 0; i < entities.size(); i++){
                     entity_index_by_name[entities[i]->name()] = i;
                 }
             }

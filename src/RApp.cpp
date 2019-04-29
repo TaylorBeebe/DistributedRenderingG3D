@@ -22,7 +22,7 @@ namespace DistributedRenderer {
 
 		// create node
 		if (type == NodeType::CLIENT) network_node = new Client(this);
-		else network_node = new Remote(this);
+		else network_node = new Remote(this, true);
 
 		G3D::GApp(settings, window, rd, true);
 
