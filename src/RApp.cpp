@@ -12,9 +12,9 @@ namespace DistributedRenderer {
 
 	RApp::RApp(const GApp::Settings& settings, NodeType type) {
 		// create a custom OSWindow
-		OSWindow* window;
+		OSWindow* window = GLFWWindow::create();
 		// create custom RenderDevice
-		RenderDevice* rd;
+		RenderDevice* rd = new RenderDevice();
 
 
 		//WARNING: This is downcasting because network_node is type NetworkNode.

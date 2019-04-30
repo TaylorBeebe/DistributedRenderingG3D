@@ -10,8 +10,6 @@
 
 using namespace G3D;
 
-class RApp;
-
 // ********** COMPUTERS **********
 // 1 -- 137.165.8.92
 // 2 -- 137.165.8.62
@@ -20,7 +18,9 @@ class RApp;
 // 5 -- 137.165.209.29
 // *******************************
 
-namespace DistributedRenderer{
+namespace DistributedRenderer {
+
+	class RApp {};
 
     namespace Constants {
 
@@ -39,12 +39,6 @@ namespace DistributedRenderer{
         static const uint16 PORT = 8080; // node port
 
         static NetAddress ROUTER_ADDR ("137.165.8.92", PORT);
-
-        //static NetAddress CLIENT_ADDR ("137.165.209.29", PORT); 
-
-        // static NetAddress N1_ADDR ("137.165.8.62", PORT);
-        // static NetAddress N2_ADDR ("137.165.8.128", PORT); 
-        // static NetAddress N3_ADDR ("137.165.8.124", PORT); 
 
     }
 
@@ -123,4 +117,5 @@ namespace DistributedRenderer{
                 return bo;
             }
 	};
+
 }

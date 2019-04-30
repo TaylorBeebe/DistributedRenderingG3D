@@ -136,18 +136,6 @@ namespace Router{
         send(t, conn, BinaryUtils::empty(), BinaryUtils::empty());
     }
 
-    void Router::terminate() {
-    	cout << "Shutting down." << endl;
-    	broadcast(PacketType::TERMINATE, true);
-
-    	if (client != NULL) client->disconnect(false);
-
-    	map<uint32, remote_connection_t*>::iterator iter;
-    	for (iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++) {
-    		iter->second->connection->disconnect(false);
-    	}
-    }
-
     void Router::registration() {
         setState(REGISTRATION);
 
@@ -347,5 +335,20 @@ namespace Router{
             } // end remote connection loop
         } // end main loop
     }
+
+    void Router::terminate() {
+        cout << "Shutting down." << endl;
+        broadcast(PacketType::TERMINATE, true);
+
+        if (client != NULL) client->disconnect(false);
+
+        map<uint32, remote_connection_t*>::iterator iter;
+        for (iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++) {
+            iter->second->connection->disconnect(false);
+        }
+
+        delete server;
+        delete client;
+    }   
 }
 }
