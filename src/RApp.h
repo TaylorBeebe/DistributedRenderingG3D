@@ -1,5 +1,5 @@
+#pragma once
 #include "DistributedRenderer.h"
-#include "Node.h"
 
 namespace DistributedRenderer {
 

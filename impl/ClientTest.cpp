@@ -1,5 +1,4 @@
 #include <G3D/G3D.h>
-#include "../src/DistributedRenderer.h"
 #include "../src/Node.h"
 
 using namespace DistributedRenderer;
@@ -12,7 +11,7 @@ int main(){
 	initG3D();
 
 	RApp app; 
-	Client client (app);
+	Client client (&app);
 
 	client.init_connection(Constants::ROUTER_ADDR);
 

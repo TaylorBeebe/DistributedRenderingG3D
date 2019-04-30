@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="impl\ClientTest.cpp" />
     <ClCompile Include="src\Client.cpp" />
-    <ClCompile Include="src\RApp.cpp" />
     <ClCompile Include="src\Remote.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -29,7 +28,6 @@
     <ClInclude Include="src\DistributedRenderer.h" />
     <ClInclude Include="src\FramebufferDist.h" />
     <ClInclude Include="src\Node.h" />
-    <ClInclude Include="src\RApp.h" />
     <ClInclude Include="src\RenderDeviceDist.h" />
     <ClInclude Include="src\TextureDist.h" />
   </ItemGroup>
