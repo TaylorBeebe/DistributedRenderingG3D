@@ -47,10 +47,10 @@ namespace DistributedRenderer{
     }
 
 	void Remote::setClip(BinaryInput& bi) {
-
-        
 		uint32 y = bi.readUInt32();
 		uint32 h = bi.readUInt32();
+
+        cout << "Config delivered height: " << h << ", y: " << y << endl;
 
 		setClip(y, h);
 	}

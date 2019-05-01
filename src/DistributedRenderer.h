@@ -94,9 +94,11 @@ namespace DistributedRenderer {
 			
             // Make a simple, small "empty" packet for quick message sending
 			static BinaryOutput* empty() {
-				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-				bo->writeBool8(1);
-				return bo;
+				// BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				// bo->write(1);
+				// return bo;
+
+                return BinaryUtils::toBinaryOutput(1);
 			}
 
             // Write a single unsigned integer to a binary output
