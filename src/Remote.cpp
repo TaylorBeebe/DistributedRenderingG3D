@@ -47,6 +47,8 @@ namespace DistributedRenderer{
     }
 
 	void Remote::setClip(BinaryInput& bi) {
+
+        
 		uint32 y = bi.readUInt32();
 		uint32 h = bi.readUInt32();
 

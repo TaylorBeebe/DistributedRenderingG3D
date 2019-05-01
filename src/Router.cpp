@@ -129,7 +129,7 @@ namespace Router{
 
     void Router::send(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body){
         // do any send preparations here
-        conn->send(t, *header, *body, 0);
+        conn->send(t, *body, *header, 0);
     }
 
     void Router::send(PacketType t, shared_ptr<NetConnection> conn){
@@ -234,14 +234,16 @@ namespace Router{
                                     cout << "----------------" << endl;
                                     cout << "NETWORK IS READY" << endl;
                                     cout << "----------------" << endl;
+
+                                    return;
                                 }
 
-                                return;
+                                break;
                             case PacketType::TERMINATE:
                                 // handle failure
                                 break;
                             default: // router received unkown message
-                                cout << "Router received unexpected message of type " << iter.type() << " from remote node" << endl;
+                                cout << "Config phase received unexpected message of type " << iter.type() << " from remote node" << endl;
                                 break;
                         }
                     }catch(...){
@@ -298,7 +300,7 @@ namespace Router{
                             setState(TERMINATED);
                             break;
                         default:
-                            cout << "Router received unexpected message " << iter.type() << " from client" << endl;
+                            cout << "Listener received unexpected message " << iter.type() << " from client" << endl;
     						break;
                     }
                 }catch(...){
@@ -325,7 +327,7 @@ namespace Router{
                                 // handle failure
                                 break;
                             default: // router received unkown message
-                                cout << "Router received unexpected message of type" << iter.type() << " from remote node" << endl;
+                                cout << "Listener received unexpected message of type" << iter.type() << " from remote node" << endl;
                                 break;
                         }
                     }catch(...){
