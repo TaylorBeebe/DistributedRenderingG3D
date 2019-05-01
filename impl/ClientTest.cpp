@@ -1,5 +1,5 @@
 #include <G3D/G3D.h>
-#include "../src/Node.h"
+#include "../src/DistributedRenderer.h"
 
 using namespace DistributedRenderer;
 using namespace std;

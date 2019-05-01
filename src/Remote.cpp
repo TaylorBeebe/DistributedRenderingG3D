@@ -1,4 +1,4 @@
-#include "Node.h"
+#include "DistributedRenderer.h"
 
 using namespace DistributedRenderer;
 

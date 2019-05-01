@@ -39,8 +39,7 @@ namespace DistributedRenderer {
 
 	}
 
-	void DistributedRenderer::RApp::onInit()
-	{
+	void DistributedRenderer::RApp::onInit(){
 	}
 
 	// run is the next thing after the constructor finishes
