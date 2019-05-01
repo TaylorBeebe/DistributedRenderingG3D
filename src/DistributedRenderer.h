@@ -106,13 +106,22 @@ namespace DistributedRenderer {
                 return bo;
             }
 
-            // Convery a BinaryInput to a BinaryOutput
+            // Convert a BinaryInput to a BinaryOutput
             static BinaryOutput* toBinaryOutput(BinaryInput* in) {
 				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
 				// copy all bytes
 				while (in->hasMore()) bo->writeInt8(in->readInt8());
 				
+                return bo;
+            }
+
+            static BinaryOutput* copy(BinaryOutput* out) {
+                BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+
+                // copy all bytes
+                bo->writeBits((uint32) *(out->getCArray()), out->length());
+                
                 return bo;
             }
 	};

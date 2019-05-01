@@ -129,7 +129,8 @@ namespace Router{
 
     void Router::send(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body){
         // do any send preparations here
-        conn->send(t, *body, *header, 0);
+
+        conn->send(t, *(BinaryUtils::copy(body)), *(BinaryUtils::copy(header)), 0);
     }
 
     void Router::send(PacketType t, shared_ptr<NetConnection> conn){
