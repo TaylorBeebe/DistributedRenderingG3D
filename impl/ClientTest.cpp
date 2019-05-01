@@ -10,8 +10,7 @@ int main(){
 
 	initG3D();
 
-	RApp app; 
-	Client client (&app);
+	Client client (nullptr);
 
 	client.init_connection(Constants::ROUTER_ADDR);
 

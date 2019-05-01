@@ -9,6 +9,7 @@
 #include <array>
 
 using namespace G3D;
+using namespace std;
 
 // ********** COMPUTERS **********
 // 1 -- 137.165.8.92
@@ -119,6 +120,9 @@ namespace DistributedRenderer {
     // =========================================
     //             Classe Definitions
     // =========================================
+
+	class RApp;
+	class NetworkNode;
 
     // NODE CLASS
     class NetworkNode{
@@ -270,7 +274,6 @@ namespace DistributedRenderer {
             NetworkNode* network_node;
 
         public:
-
             RApp(const GApp::Settings& settings, NodeType type = REMOTE);
 
             virtual void onInit() override;

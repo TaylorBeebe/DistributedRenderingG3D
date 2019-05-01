@@ -10,8 +10,7 @@ int main(){
 
 	initG3D();
 
-	RApp app; 
-	Remote remote (app, true);
+	Remote remote (nullptr, true);
 
 	remote.init_connection(Constants::ROUTER_ADDR);
 

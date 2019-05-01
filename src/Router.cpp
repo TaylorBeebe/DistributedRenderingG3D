@@ -347,8 +347,8 @@ namespace Router{
             iter->second->connection->disconnect(false);
         }
 
-        delete server;
-        delete client;
+        //delete *server;
+        //delete *client;
     }   
 }
 }

@@ -10,11 +10,11 @@ int main(){
     // intialize G3D so we can use the networking library
 	initG3D();
 
-    Router router;
+    Router::Router router;
     
-    if(router.setup()) poll();
+    if(router.setup()) router.poll();
 
-    terminate();
+    router.terminate();
 
     cout << "Goodbye." << endl; 
 
