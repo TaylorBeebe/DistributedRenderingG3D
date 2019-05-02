@@ -75,7 +75,7 @@ void App::onInit() {
     m_font = GFont::fromFile(System::findDataFile("arial.fnt"));
     const NetAddress serverAddress(NetAddress::localHostname(), WEB_PORT);
     m_addressString = serverAddress.toString();
-    //m_qrTexture = qrEncodeHTTPAddress(serverAddress);
+    m_qrTexture = qrEncodeHTTPAddress(serverAddress);
     debugPrintf("Server Address: %s\n", serverAddress.toString().c_str());
 }
 
@@ -206,19 +206,18 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurface
 		shared_ptr<TextureDist> td = dynamic_pointer_cast<TextureDist>(m_finalFramebuffer->texture(0));
 
         // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
-		//sendImage(m_finalFramebuffer->texture(0)->toImage(ImageFormat::RGB8()), array, Image::JPEG);
-		sendImage(td->toImage(ImageFormat::RGB8()), array, Image::JPEG);
+		sendImage(td->toImage5(ImageFormat::RGB8()), array, Image::JPEG);
         clientWantsImage = 0;
     }
 }
 
 
 void App::onGraphics2D(RenderDevice* rd, Array<shared_ptr<Surface2D> >& posed2D) {
-   /* if (notNull(m_qrTexture) && ! isNull(m_font)) {
+    if (notNull(m_qrTexture) && ! isNull(m_font)) {
         Rect2D rect = Rect2D::xywh(Point2(20, 20), m_qrTexture->vector2Bounds() * 10);
         Draw::rect2D(rect, rd, Color3::white(), m_qrTexture, Sampler::buffer());
         m_font->draw2D(rd, m_addressString, Point2(rect.center().x, rect.y1() + 20), 24, Color3::white(), Color3::black(), GFont::XALIGN_CENTER);
-    }*/
+    }
 
     if (m_font) { 
         Array<shared_ptr<WebServer::WebSocket>> array;  m_webServer->getWebSocketArray(socketUri, array);

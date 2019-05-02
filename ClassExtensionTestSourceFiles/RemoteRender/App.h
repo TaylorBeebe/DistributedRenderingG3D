@@ -8,6 +8,8 @@
 
 #define WEB_PORT (8080)
 
+shared_ptr<Texture> qrEncodeHTTPAddress(const NetAddress& addr);
+
 /** 
   Simple example of sending G3D events from a web browser and injecting them
   into the GApp event system and sending images in real-time to a web browser.
@@ -24,6 +26,10 @@ protected:
 
     shared_ptr<GFont>       m_font;
     String                  m_addressString;
+
+	/** QR code for letting clients automatically connect */
+	shared_ptr<Texture>     m_qrTexture;
+	shared_ptr<Texture>     m_background;
 
     /** The image sent across the network */
     shared_ptr<FramebufferDist> m_finalFramebuffer;
