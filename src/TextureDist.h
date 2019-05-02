@@ -5,6 +5,21 @@ class TextureDist : public Texture {
 
 public:
 
+	TextureDist(const String& name,int width, int height,int depth,Dimension dimension,const Encoding& encoding,int numSamples,bool needsForce) : 
+		Texture::Texture(name, width, height, depth, dimension, encoding, numSamples, needsForce) {}
+
+	//static shared_ptr<TextureDist> createEmpty(const String& name, int width, int height, const Encoding& encoding = Encoding(ImageFormat::RGBA8()),
+	//	Dimension dimension = DIM_2D, bool allocateMIPMaps = false, int depth = 1, int numSamples = 1) {
+	//
+	//	shared_ptr<TextureDist> td;
+
+	//	Texture::copy(Texture::createEmpty(name, width, height, encoding, dimension, allocateMIPMaps, depth, numSamples), td);
+
+	//	return td;
+
+	//}
+
+
 	static GLenum dimensionToTarget(Texture::Dimension d, int numSamples) {
 		switch (d) {
 		case Texture::DIM_CUBE_MAP:
@@ -30,7 +45,7 @@ public:
 			return GL_TEXTURE_3D;
 
 		default:
-			debugAssert(false);
+			//debugAssert(false);
 			return 0;//GL_TEXTURE_2D;
 		}
 	}
@@ -87,11 +102,11 @@ public:
 			}
 			else {
 
-				if (notNull(bytes)) {
-					//debugAssert(isValidPointer(bytes));
-					//debugAssertM(isValidPointer(bytes + (m_width * m_height - 1) * bytesPerPixel),
-						"Byte array in Texture creation was too small");
-				}
+				//if (notNull(bytes)) {
+				//	debugAssert(isValidPointer(bytes));
+				//	debugAssertM(isValidPointer(bytes + (m_width * m_height - 1) * bytesPerPixel),
+				//		"Byte array in Texture creation was too small");
+				//}
 
 				// 2D texture, level of detail 0 (normal), internal
 				// format, x size from image, y size from image, border 0
@@ -120,7 +135,7 @@ public:
 			glTexImage3D(target, mipLevel, ImageFormat, m_width, m_height,
 				depth * 6, 0, bytesFormat, dataType, bytes);
 			break;
-		default:
+		//default:
 			//debugAssertM(false, "Fell through switch");
 		}
 
@@ -130,24 +145,24 @@ public:
 		}
 	}
 
-	shared_ptr<TextureDist> fromGLTexture
-	(const String&           name,
-		GLuint                  textureID,
-		Encoding                encoding,
-		AlphaFilter             alphaFilter,
-		Dimension               dimension,
-		bool                    destroyGLTextureInDestructor,
-		int                     numSamples,
-		int                     width,
-		int                     height,
-		int                     depth,
-		bool                    hasMIPMaps) {
+	static shared_ptr<TextureDist> fromGLTexture
+	(const String&                   name,
+		GLuint                          textureID,
+		Encoding                        encoding,
+		AlphaFilter                     alphaFilter,
+		Dimension                       dimension = DIM_2D,
+		bool                            destroyGLTextureInDestructor = true,
+		int                             numSamples = 1,
+		int                             width = -1,
+		int                             height = -1,
+		int                             depth = -1,
+		bool                            hasMIPMaps = false) {
 
-		debugAssert(encoding.format);
+		//debugAssert(encoding.format);
 
 		// Detect dimensions
 		const GLenum target = dimensionToTarget(dimension, numSamples);
-		debugAssertGLOk();
+		//debugAssertGLOk();
 
 		// For cube map, we can't read "cube map" but must choose a face
 		const GLenum readbackTarget = (dimension == DIM_CUBE_MAP) ? GL_TEXTURE_CUBE_MAP_POSITIVE_X : target;
@@ -163,7 +178,7 @@ public:
 			glBindTexture(target, GL_NONE);
 		}
 
-		const shared_ptr<Texture> t = createShared<Texture>(name, width, height, depth, dimension, encoding, numSamples, false);
+		const shared_ptr<TextureDist> t = createShared<TextureDist>(name, width, height, depth, dimension, encoding, numSamples, false);
 		s_allTextures.set((uintptr_t)t.get(), t);
 		t->m_conservativelyHasNonUnitAlpha = (encoding.format->alphaBits > 0) ||
 			(encoding.readMultiplyFirst.a + encoding.readAddSecond.a < 1.0f);
@@ -184,36 +199,21 @@ public:
 		return t;
 	}
 
+	static shared_ptr<TextureDist> createEmpty (const String& name, int width, int height, const Encoding& encoding = Encoding(ImageFormat::RGBA8()), 
+		Dimension dimension = DIM_2D, bool allocateMIPMaps = false, int depth = 1, int numSamples = 1) {
 
-	static void glStatePush() {
-		glActiveTexture(GL_TEXTURE0);
-	}
-
-	static void glStatePop() {
-	}
-
-	shared_ptr<TextureDist> createEmpty
-	(const String&                    name,
-		int                              width,
-		int                              height,
-		const Encoding&                  encoding,
-		Dimension                        dimension,
-		bool                             allocateMIPMaps,
-		int                              depth,
-		int                              numSamples) {
-
-		//debugAssertGLOk();
+		//degugAssertGLOk();
 		//debugAssertM(encoding.format, "encoding.format may not be ImageFormat::AUTO()");
 
-		if ((dimension != DIM_3D) && (dimension != DIM_2D_ARRAY) && (dimension != DIM_CUBE_MAP_ARRAY)) {
+		//if ((dimension != DIM_3D) && (dimension != DIM_2D_ARRAY) && (dimension != DIM_CUBE_MAP_ARRAY)) {
 			//debugAssertM(depth == 1, "Depth must be 1 for DIM_2D textures");
-		}
+		//}
 
 		//debugAssert(notNull(encoding.format));
 
 		// Check for at least one miplevel on the incoming data
 		int maxRes = std::max(width, std::max(height, depth));
-		int numMipMaps = allocateMIPMaps ? int(log2(float(maxRes))) + 1 : 1;
+		int numMipMaps = allocateMIPMaps ? int(std::log2(float(maxRes))) + 1 : 1;
 		//debugAssert(numMipMaps > 0);
 
 		// Create the texture
@@ -229,8 +229,6 @@ public:
 		Color4 meanval = Color4::nan();
 		Color4 maxval = Color4::nan();
 		AlphaFilter alphaFilter = AlphaFilter::DETECT;
-
-		glStatePush(); {
 
 			glBindTexture(target, textureID);
 			//debugAssertGLOk();
@@ -292,7 +290,6 @@ public:
 				}
 			}
 
-		} glStatePop();
 
 		//debugAssertGLOk();
 		const shared_ptr<TextureDist>& t = fromGLTexture(name, textureID, encoding.format, alphaFilter, dimension);
@@ -322,17 +319,17 @@ public:
 		return t;
 	}
 
-	/*
-	void toPixelTransferBuffer(shared_ptr<GLPixelTransferBuffer>& buffer, const ImageFormat* outFormat, int mipLevel, CubeFace face) {
-		Texture::toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
-	}
-
-	shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) {
-		return Texture::toPixelTransferBuffer(outFormat, mipLevel, face);
-	}
-
-	*/
-	shared_ptr<Image> toImage5(const ImageFormat* outFormat, int w, int h, int mipLevel, CubeFace face) const {
+//	/*
+//	void toPixelTransferBuffer(shared_ptr<GLPixelTransferBuffer>& buffer, const ImageFormat* outFormat, int mipLevel, CubeFace face) {
+//		Texture::toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
+//	}
+//
+//	shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) {
+//		return Texture::toPixelTransferBuffer(outFormat, mipLevel, face);
+//	}
+//
+//	*/
+	shared_ptr<Image> toImage5(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
 		return Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
 	}
 	
