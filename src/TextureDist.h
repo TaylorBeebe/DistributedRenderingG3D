@@ -1,5 +1,7 @@
 #pragma once
 #include <G3D/G3D.h>
+#include "ImageDist.h"
+
 
 class TextureDist : public Texture {
 
@@ -436,8 +438,8 @@ shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFo
 	return buffer;
 }
 
-	shared_ptr<Image> toImage5(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
-		return Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
+	shared_ptr<ImageDist> toImage5(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
+		shared_ptr<PixelTransferBuffer> p = Texture::toPixelTransferBuffer(outFormat, mipLevel, face);
+		return ImageDist::fromPixelTransferBuffer(p);
 	}
-	
 };
