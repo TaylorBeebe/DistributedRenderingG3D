@@ -8,13 +8,11 @@ namespace G3D {
 
 	public:
 
-		ImageDist() : Image() { }
-		
-	
+		ImageDist() : Image() { }	
 
-		static shared_ptr<ImageDist> fromPixelTransferBuffer(const shared_ptr<PixelTransferBuffer>& buffer) {
+		static shared_ptr<ImageDist> fromPixelTransferBuffer(const shared_ptr<PixelTransferBuffer>& buffer, int x, int y) {
 			const shared_ptr<ImageDist>& img = create(buffer->width(), buffer->height(), buffer->format());
-			img->set(buffer);
+			img->set(buffer,x,y);
 			return img;
 		}
 
@@ -25,5 +23,4 @@ namespace G3D {
 			return img;
 		}
 	};
-
 }
