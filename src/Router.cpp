@@ -129,7 +129,9 @@ namespace Router{
 
     void Router::send(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body){
         // do any send preparations here
-        conn->send(t, *(BinaryUtils::copy(body)), *(BinaryUtils::copy(header)), 0);
+		BinaryOutput* nb = BinaryUtils::copy(body);
+		BinaryOutput* nh = BinaryUtils::copy(header);
+        conn->send(t, *nb, *nh, 0);
     }
 
     void Router::send(PacketType t, shared_ptr<NetConnection> conn){
@@ -193,7 +195,7 @@ namespace Router{
             remote_connection_t* cv = iter->second;
 
             // send the config data
-            BinaryOutput* config = new BinaryOutput( "<memory>", G3DEndian::G3D_BIG_ENDIAN );
+            BinaryOutput* config = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
             config->writeUInt32(curr_y);
             config->writeUInt32(frag_height);
@@ -220,23 +222,25 @@ namespace Router{
                     try {  
                         switch(iter.type()){
                             case PacketType::CONFIG_RECEIPT: // a receipt of configs
+								cout << "Config receipt for node: " << conn_vars->id << endl;
 
-                                if(!conn_vars->configured){
-                                    conn_vars->configured = true;
-                                    configurations++;
-                                }
+								if (!conn_vars->configured) {
+									conn_vars->configured = true;
+								
+									// if every node is accounted for and running without error
+									// broadcast a ready message and await the client's update
+									cout << "configurations: " << configurations << " + 1 / " << numRemotes() << endl;
+									if (++configurations == numRemotes()) {
+										cout << configurations << " = " << numRemotes() << endl;
+										broadcast(PacketType::READY, true); 
 
-                                // if every node is accounted for and running without error
-                                // broadcast a ready message and await the client's update
-                                if(configurations == numRemotes()){
-                                    broadcast(PacketType::READY, true);
+										cout << "----------------" << endl;
+										cout << "NETWORK IS READY" << endl;
+										cout << "----------------" << endl;
 
-                                    cout << "----------------" << endl;
-                                    cout << "NETWORK IS READY" << endl;
-                                    cout << "----------------" << endl;
-
-                                    return;
-                                }
+										return;
+									}
+								}
 
                                 break;
                             case PacketType::TERMINATE:

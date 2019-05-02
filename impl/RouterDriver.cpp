@@ -9,7 +9,7 @@ int main(){
 
     // intialize G3D so we can use the networking library
 	initG3D();
-
+		
     Router::Router router;
     
     if(router.setup()) router.poll();
