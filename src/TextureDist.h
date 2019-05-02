@@ -438,8 +438,10 @@ shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFo
 	return buffer;
 }
 
-	shared_ptr<ImageDist> toImage5(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
-		shared_ptr<PixelTransferBuffer> p = Texture::toPixelTransferBuffer(outFormat, mipLevel, face);
-		return ImageDist::fromPixelTransferBuffer(p,0,std::floor(height() - height()/3));
+	shared_ptr<Image> toImage5(Rect2D rec = Rect2D::xyxy(0,0,0,0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
+		shared_ptr<Image> i = Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
+		return i;
+		shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
+		return Image::fromPixelTransferBuffer(p);
 	}
 };
