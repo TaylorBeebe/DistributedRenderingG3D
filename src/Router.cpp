@@ -222,22 +222,20 @@ namespace Router{
                     try {  
                         switch(iter.type()){
                             case PacketType::CONFIG_RECEIPT: // a receipt of configs
-								cout << "Config receipt for node: " << conn_vars->id << endl;
 
 								if (!conn_vars->configured) {
 									conn_vars->configured = true;
 								
 									// if every node is accounted for and running without error
 									// broadcast a ready message and await the client's update
-									cout << "configurations: " << configurations << " + 1 / " << numRemotes() << endl;
 									if (++configurations == numRemotes()) {
-										cout << configurations << " = " << numRemotes() << endl;
 										broadcast(PacketType::READY, true); 
 
 										cout << "----------------" << endl;
 										cout << "NETWORK IS READY" << endl;
 										cout << "----------------" << endl;
 
+										++iter;
 										return;
 									}
 								}
