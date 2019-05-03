@@ -1,9 +1,15 @@
 #pragma once
 #include <G3D/G3D.h>
+#include "ImageDist.h"
+
 
 class TextureDist : public Texture {
 
 public:
+
+	TextureDist(const String& name,int width, int height,int depth,Dimension dimension,const Encoding& encoding,int numSamples,bool needsForce) : 
+		Texture::Texture(name, width, height, depth, dimension, encoding, numSamples, needsForce) {}
+
 
 	static GLenum dimensionToTarget(Texture::Dimension d, int numSamples) {
 		switch (d) {
@@ -30,7 +36,7 @@ public:
 			return GL_TEXTURE_3D;
 
 		default:
-			debugAssert(false);
+			//debugAssert(false);
 			return 0;//GL_TEXTURE_2D;
 		}
 	}
@@ -76,8 +82,6 @@ public:
 			// Note code falling through from above
 
 			if (compressed) {
-				//debugAssertM((target != GL_TEXTURE_RECTANGLE),
-				//	"Compressed textures must be DIM_2D or DIM_2D.");
 
 				glCompressedTexImage2DARB
 				(target, mipLevel, bytesActualFormat, m_width,
@@ -86,12 +90,6 @@ public:
 
 			}
 			else {
-
-				if (notNull(bytes)) {
-					//debugAssert(isValidPointer(bytes));
-					//debugAssertM(isValidPointer(bytes + (m_width * m_height - 1) * bytesPerPixel),
-						"Byte array in Texture creation was too small");
-				}
 
 				// 2D texture, level of detail 0 (normal), internal
 				// format, x size from image, y size from image, border 0
@@ -103,25 +101,19 @@ public:
 					glTexImage2DMultisample(target, numSamples, ImageFormat, m_width, m_height, false);
 				}
 				else {
-					//debugAssertGLOk();
 					glTexImage2D(target, mipLevel, ImageFormat, m_width, m_height, 0, bytesFormat, dataType, bytes);
-					//debugAssertGLOk();
 				}
 			}
 			break;
 
 		case GL_TEXTURE_3D:
 		case GL_TEXTURE_2D_ARRAY:
-			//debugAssert(isNull(bytes) || isValidPointer(bytes));
 			glTexImage3D(target, mipLevel, ImageFormat, m_width, m_height, depth, 0, bytesFormat, dataType, bytes);
 			break;
 		case GL_TEXTURE_CUBE_MAP_ARRAY:
-			//debugAssert(isNull(bytes) || isValidPointer(bytes));
 			glTexImage3D(target, mipLevel, ImageFormat, m_width, m_height,
 				depth * 6, 0, bytesFormat, dataType, bytes);
 			break;
-		default:
-			//debugAssertM(false, "Fell through switch");
 		}
 
 		if (freeBytes) {
@@ -130,24 +122,22 @@ public:
 		}
 	}
 
-	shared_ptr<TextureDist> fromGLTexture
-	(const String&           name,
-		GLuint                  textureID,
-		Encoding                encoding,
-		AlphaFilter             alphaFilter,
-		Dimension               dimension,
-		bool                    destroyGLTextureInDestructor,
-		int                     numSamples,
-		int                     width,
-		int                     height,
-		int                     depth,
-		bool                    hasMIPMaps) {
+	static shared_ptr<TextureDist> fromGLTexture
+	(const String&                   name,
+		GLuint                          textureID,
+		Encoding                        encoding,
+		AlphaFilter                     alphaFilter,
+		Dimension                       dimension = DIM_2D,
+		bool                            destroyGLTextureInDestructor = true,
+		int                             numSamples = 1,
+		int                             width = -1,
+		int                             height = -1,
+		int                             depth = -1,
+		bool                            hasMIPMaps = false) {
 
-		debugAssert(encoding.format);
 
 		// Detect dimensions
 		const GLenum target = dimensionToTarget(dimension, numSamples);
-		debugAssertGLOk();
 
 		// For cube map, we can't read "cube map" but must choose a face
 		const GLenum readbackTarget = (dimension == DIM_CUBE_MAP) ? GL_TEXTURE_CUBE_MAP_POSITIVE_X : target;
@@ -163,7 +153,7 @@ public:
 			glBindTexture(target, GL_NONE);
 		}
 
-		const shared_ptr<Texture> t = createShared<Texture>(name, width, height, depth, dimension, encoding, numSamples, false);
+		const shared_ptr<TextureDist> t = createShared<TextureDist>(name, width, height, depth, dimension, encoding, numSamples, false);
 		s_allTextures.set((uintptr_t)t.get(), t);
 		t->m_conservativelyHasNonUnitAlpha = (encoding.format->alphaBits > 0) ||
 			(encoding.readMultiplyFirst.a + encoding.readAddSecond.a < 1.0f);
@@ -184,43 +174,17 @@ public:
 		return t;
 	}
 
-
-	static void glStatePush() {
-		glActiveTexture(GL_TEXTURE0);
-	}
-
-	static void glStatePop() {
-	}
-
-	shared_ptr<TextureDist> createEmpty
-	(const String&                    name,
-		int                              width,
-		int                              height,
-		const Encoding&                  encoding,
-		Dimension                        dimension,
-		bool                             allocateMIPMaps,
-		int                              depth,
-		int                              numSamples) {
-
-		//debugAssertGLOk();
-		//debugAssertM(encoding.format, "encoding.format may not be ImageFormat::AUTO()");
-
-		if ((dimension != DIM_3D) && (dimension != DIM_2D_ARRAY) && (dimension != DIM_CUBE_MAP_ARRAY)) {
-			//debugAssertM(depth == 1, "Depth must be 1 for DIM_2D textures");
-		}
-
-		//debugAssert(notNull(encoding.format));
+	static shared_ptr<TextureDist> createEmpty (const String& name, int width, int height, const Encoding& encoding = Encoding(ImageFormat::RGBA8()), 
+		Dimension dimension = DIM_2D, bool allocateMIPMaps = false, int depth = 1, int numSamples = 1) {
 
 		// Check for at least one miplevel on the incoming data
 		int maxRes = std::max(width, std::max(height, depth));
-		int numMipMaps = allocateMIPMaps ? int(log2(float(maxRes))) + 1 : 1;
+		int numMipMaps = allocateMIPMaps ? int(std::log2(float(maxRes))) + 1 : 1;
 		//debugAssert(numMipMaps > 0);
 
 		// Create the texture
 		GLuint textureID = newGLTextureID();
 		GLenum target = dimensionToTarget(dimension, numSamples);
-
-		//debugAssertM(GLCaps::supportsTexture(encoding.format), "Unsupported texture format.");
 
 		int mipWidth = width;
 		int mipHeight = height;
@@ -229,8 +193,6 @@ public:
 		Color4 meanval = Color4::nan();
 		Color4 maxval = Color4::nan();
 		AlphaFilter alphaFilter = AlphaFilter::DETECT;
-
-		glStatePush(); {
 
 			glBindTexture(target, textureID);
 			//debugAssertGLOk();
@@ -263,7 +225,6 @@ public:
 							encoding.format->openGLDataFormat,
 							numSamples,
 							encoding);
-						//debugAssertGLOk();
 
 #if 0 // Avoid GPU-CPU sync
 #               ifndef G3D_DEBUG
@@ -292,11 +253,8 @@ public:
 				}
 			}
 
-		} glStatePop();
 
-		//debugAssertGLOk();
 		const shared_ptr<TextureDist>& t = fromGLTexture(name, textureID, encoding.format, alphaFilter, dimension);
-		//debugAssertGLOk();
 
 		t->m_width = width;
 		t->m_height = height;
@@ -318,22 +276,172 @@ public:
 			t->generateMipMaps();
 		}
 
-		//debugAssertGLOk();
 		return t;
 	}
 
-	/*
-	void toPixelTransferBuffer(shared_ptr<GLPixelTransferBuffer>& buffer, const ImageFormat* outFormat, int mipLevel, CubeFace face) {
-		Texture::toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
+	static bool isSRGBFormat(const ImageFormat* format) {
+		return format->colorSpace == ImageFormat::COLOR_SPACE_SRGB;
 	}
 
-	shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) {
-		return Texture::toPixelTransferBuffer(outFormat, mipLevel, face);
+	static GLint getPackAlignment(int bufferStride, GLint& oldPackAlignment, bool& alignmentNeedsToChange) {
+		oldPackAlignment = 8; // LCM of all possible alignments
+		int alignmentOffset = bufferStride % oldPackAlignment;
+		if (alignmentOffset != 0) {
+			glGetIntegerv(GL_PACK_ALIGNMENT, &oldPackAlignment); // find actual alignment
+			alignmentOffset = bufferStride % oldPackAlignment;
+		}
+		alignmentNeedsToChange = alignmentOffset != 0;
+		GLint newPackAlignment = oldPackAlignment;
+		if (alignmentNeedsToChange) {
+			if (alignmentOffset == 4) {
+				newPackAlignment = 4;
+			}
+			else if (alignmentOffset % 2 == 0) {
+				newPackAlignment = 2;
+			}
+			else {
+				newPackAlignment = 1;
+			}
+		}
+		return newPackAlignment;
 	}
 
-	*/
-	shared_ptr<Image> toImage5(const ImageFormat* outFormat, int w, int h, int mipLevel, CubeFace face) const {
-		return Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
+	void toPixelTransferBuffer(shared_ptr<GLPixelTransferBuffer>& buffer, const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X, bool runMapHooks = true) const {
+	debugAssertGLOk();
+	force();
+	if (outFormat == ImageFormat::AUTO()) {
+		outFormat = format();
 	}
-	
+	debugAssertGLOk();
+	alwaysAssertM(!isSRGBFormat(outFormat) || isSRGBFormat(format()), "glGetTexImage doesn't do sRGB conversion, so we need to first copy an RGB texture to sRGB on the GPU. However, this functionality is broken as of the time of writing this code");
+
+	const bool cpuSRGBConversion = isSRGBFormat(format()) && !isSRGBFormat(outFormat) && (m_dimension == DIM_CUBE_MAP);
+
+	BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer");
+
+	if (outFormat == format()) {
+		if (outFormat == ImageFormat::SRGB8()) {
+			outFormat = ImageFormat::RGB8();
+		}
+		else if (outFormat == ImageFormat::SRGBA8()) {
+			outFormat = ImageFormat::RGBA8();
+		}
+	}
+
+	// Need to call before binding in case an external
+	// application (CUDA) has this buffer mapped.
+	if (runMapHooks) {
+		buffer->runMapHooks();
+	}
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer->glBufferID()); {
+		debugAssertGLOk();
+
+		glBindTexture(openGLTextureTarget(), openGLID()); {
+			debugAssertGLOk();
+			GLenum target;
+			if (isCubeMap()) {
+				target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face;
+			}
+			else {
+				// Not a cubemap
+				target = openGLTextureTarget();
+			}
+
+			bool alignmentNeedsToChange;
+			GLint oldPackAlignment;
+			const GLint newPackAlignment = getPackAlignment((int)buffer->stride(), oldPackAlignment, alignmentNeedsToChange);
+
+			debugAssertM(!((outFormat == ImageFormat::R32F()) && (m_encoding.format == ImageFormat::DEPTH32F())), "Read back DEPTH32F as DEPTH32F, not R32F");
+			if (alignmentNeedsToChange) {
+				glPixelStorei(GL_PACK_ALIGNMENT, newPackAlignment);
+				debugAssertGLOk();
+			}
+
+			BEGIN_PROFILER_EVENT("glGetTexImage");
+			debugAssertGLOk();
+			glGetTexImage(target, mipLevel, outFormat->openGLBaseFormat, outFormat->openGLDataFormat, 0);
+			debugAssertGLOk();
+			END_PROFILER_EVENT();
+			if (alignmentNeedsToChange) {
+				glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);
+				debugAssertGLOk();
+			}
+
+		} glBindTexture(openGLTextureTarget(), GL_NONE);
+
+	} glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
+	debugAssertGLOk();
+
+	if (cpuSRGBConversion) {
+		BEGIN_PROFILER_EVENT("CPU sRGB -> RGB conversion");
+		// Fix sRGB
+		alwaysAssertM(outFormat == ImageFormat::RGB32F(), "CubeMap sRGB -> RGB conversion only supported for RGB32F format output");
+		Color3* ptr = (Color3*)buffer->mapReadWrite();
+		runConcurrently(0, int(buffer->size() / sizeof(Color3)), [&](int i) {
+			ptr[i] = ptr[i].sRGBToRGB();
+		});
+		buffer->unmap();
+		ptr = nullptr;
+		END_PROFILER_EVENT();
+	}
+
+	END_PROFILER_EVENT();
+}
+
+shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
+	force();
+	if (outFormat == ImageFormat::AUTO()) {
+		outFormat = format();
+	}
+	debugAssertGLOk();
+	alwaysAssertM(!isSRGBFormat(outFormat) || isSRGBFormat(format()), "glGetTexImage doesn't do sRGB conversion, so we need to first copy an RGB texture to sRGB on the GPU. However, this functionality is broken as of the time of writing this code");
+
+	const bool cpuSRGBConversion = isSRGBFormat(format()) && !isSRGBFormat(outFormat) && (m_dimension == DIM_CUBE_MAP);
+
+	if (isSRGBFormat(format()) && !isSRGBFormat(outFormat) && !cpuSRGBConversion) {
+		BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer (slow path)");
+		// Copy to non-srgb texture first, forcing OpenGL to perform the sRGB conversion in a pixel shader
+		const shared_ptr<TextureDist>& temp = TextureDist::createEmpty("Temporary copy", m_width, m_height, outFormat, m_dimension, false, m_depth);
+		Texture::copy(dynamic_pointer_cast<TextureDist>(const_cast<TextureDist*>(this)->shared_from_this()), temp);
+		shared_ptr<GLPixelTransferBuffer> buffer = GLPixelTransferBuffer::create(m_width, m_height, outFormat);
+		temp->toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
+
+		END_PROFILER_EVENT();
+		return buffer;
+	}
+
+	BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer");
+	// OpenGL's sRGB readback is non-intuitive.  If we're reading from sRGB to sRGB, we actually read back using "RGB".
+	if (outFormat == format()) {
+		if (outFormat == ImageFormat::SRGB8()) {
+			outFormat = ImageFormat::RGB8();
+		}
+		else if (outFormat == ImageFormat::SRGBA8()) {
+			outFormat = ImageFormat::RGBA8();
+		}
+	}
+	int mipDepth = 1;
+	if (dimension() == DIM_3D) {
+		mipDepth = depth() >> mipLevel;
+	}
+	else if (dimension() == DIM_2D_ARRAY) {
+		mipDepth = depth();
+	}
+
+	BEGIN_PROFILER_EVENT("GLPixelTransferBuffer::create");
+	shared_ptr<GLPixelTransferBuffer> buffer = GLPixelTransferBuffer::create(width() >> mipLevel, height() >> mipLevel, outFormat, nullptr, mipDepth, GL_STATIC_READ);
+	END_PROFILER_EVENT();
+
+	toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
+	END_PROFILER_EVENT();
+	return buffer;
+}
+
+	shared_ptr<Image> toImage5(Rect2D rec = Rect2D::xyxy(0,0,0,0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
+		shared_ptr<Image> i = Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
+		return i;
+		shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
+		return Image::fromPixelTransferBuffer(p);
+	}
 };
