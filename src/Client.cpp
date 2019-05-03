@@ -16,8 +16,10 @@ namespace DistributedRenderer{
 		
 		cout << "Awaiting ready signal" << endl;
 
+        bool ready = false;
+
         // busy wait for a ready
-        while (isConnected()) {
+        while (isConnected() && !ready) {
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
 					case PacketType::TERMINATE:
@@ -26,8 +28,8 @@ namespace DistributedRenderer{
 						return;
                     case PacketType::READY:
 						// exit so the app can run
-                        ++iter;
-                        return;
+                        ready = true;
+                        break;
                     default: break;
                 }
             }

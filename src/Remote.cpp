@@ -15,11 +15,11 @@ namespace DistributedRenderer{
 
 		cout << "Awaiting configuration" << endl;
 
-        bool server_online = false;
+        bool ready = false;
 
         // wait for a config
         // then wait for a ready
-        while (isConnected()) {
+        while (isConnected() && !ready) {
             for (NetMessageIterator& iter = connection->incomingMessageIterator(); iter.isValid(); ++iter){
                 switch(iter.type()){
                     case PacketType::CONFIG:
@@ -29,11 +29,11 @@ namespace DistributedRenderer{
                         break;
                     case PacketType::READY:
 						cout << "Network is ready" << endl;
-                        return;
+                        ready = true;
+                        break;
 					case PacketType::TERMINATE:
 						cout << "Network was terminated" << endl;
 						// the_app.terminate(); or something
-                        ++iter;
 						return;
                     default: 
                         cout << "Received unexpected packet" << endl;
