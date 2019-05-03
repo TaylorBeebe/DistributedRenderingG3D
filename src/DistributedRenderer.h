@@ -94,11 +94,9 @@ namespace DistributedRenderer {
 			
             // Make a simple, small "empty" packet for quick message sending
 			static BinaryOutput* empty() {
-				// BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
-				// bo->write(1);
-				// return bo;
-
-                return BinaryUtils::toBinaryOutput(1);
+				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				bo->write(1);
+				return bo;
 			}
 
             // Write a single unsigned integer to a binary output
@@ -122,14 +120,14 @@ namespace DistributedRenderer {
                 BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
 
                 // copy all bytes
-                bo->writeBits((uint32) *(out->getCArray()), out->length());
+                bo->writeBits((uint32) *(out->getCArray()), out->length()*8);
                 
                 return bo;
             }
 	};
 
     // =========================================
-    //             Classe Definitions
+    //             Class Definitions
     // =========================================
 
 	class RApp;

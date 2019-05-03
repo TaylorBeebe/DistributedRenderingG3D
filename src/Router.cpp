@@ -235,6 +235,7 @@ namespace Router{
                                     cout << "NETWORK IS READY" << endl;
                                     cout << "----------------" << endl;
 
+                                    ++iter;
                                     return;
                                 }
 

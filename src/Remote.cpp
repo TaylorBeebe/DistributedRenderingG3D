@@ -33,6 +33,7 @@ namespace DistributedRenderer{
 					case PacketType::TERMINATE:
 						cout << "Network was terminated" << endl;
 						// the_app.terminate(); or something
+                        ++iter;
 						return;
                     default: 
                         cout << "Received unexpected packet" << endl;
