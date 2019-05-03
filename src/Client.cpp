@@ -26,6 +26,7 @@ namespace DistributedRenderer{
 						return;
                     case PacketType::READY:
 						// exit so the app can run
+                        ++iter;
                         return;
                     default: break;
                 }

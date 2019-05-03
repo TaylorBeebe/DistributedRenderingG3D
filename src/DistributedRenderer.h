@@ -127,7 +127,7 @@ namespace DistributedRenderer {
 	};
 
     // =========================================
-    //             Classe Definitions
+    //             Class Definitions
     // =========================================
 
 	class RApp;
@@ -244,6 +244,7 @@ namespace DistributedRenderer {
         public:
             Remote(RApp* app, bool headless_mode);
             void receive();
+            Rect2D getBounds() { return bounds; }
     };
 
     class RApp : public GApp {

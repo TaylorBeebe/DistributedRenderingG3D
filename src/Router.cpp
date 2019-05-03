@@ -222,7 +222,6 @@ namespace Router{
                     try {  
                         switch(iter.type()){
                             case PacketType::CONFIG_RECEIPT: // a receipt of configs
-
 								if (!conn_vars->configured) {
 									conn_vars->configured = true;
 								
@@ -239,7 +238,6 @@ namespace Router{
 										return;
 									}
 								}
-
                                 break;
                             case PacketType::TERMINATE:
                                 // handle failure
