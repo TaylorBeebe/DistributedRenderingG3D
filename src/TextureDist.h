@@ -440,8 +440,10 @@ shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFo
 
 	shared_ptr<Image> toImage5(Rect2D rec = Rect2D::xyxy(0,0,0,0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
 		shared_ptr<Image> i = Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
-		return i;
 		shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
-		return Image::fromPixelTransferBuffer(p);
+		shared_ptr<Image> i2 = Image::fromPixelTransferBuffer(p);
+		Array<shared_ptr<Image>> arr = { i2, i2, i2 };
+		shared_ptr<PixelTransferBuffer> p2 = Image::CombineImages(arr);
+		return Image::fromPixelTransferBuffer(p2);
 	}
 };
