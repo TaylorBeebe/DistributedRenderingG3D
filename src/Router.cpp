@@ -59,7 +59,7 @@ namespace Router{
 //              Packet Handling
 // =========================================
 
-    void Router::rerouteUpdate(BinaryInput& header, BinaryInput& body) {
+    void Router::rerouteUpdate(BinaryInput* header, BinaryInput* body) {
        
         header.beginBits();
         current_batch = header.readUInt32();
@@ -73,16 +73,16 @@ namespace Router{
 
         // route transform data to all remotes
         broadcast(PacketType::UPDATE, 
-                  BinaryUtils::toBinaryOutput(&header), 
-                  BinaryUtils::toBinaryOutput(&body), 
+                  BinaryUtils::toBinaryOutput(header), 
+                  BinaryUtils::toBinaryOutput(body), 
                   false);
     }
 
-    void Router::handleFragment(remote_connection_t* conn_vars, BinaryInput& header, BinaryInput& body) {
+    void Router::handleFragment(remote_connection_t* conn_vars, BinaryInput* header, BinaryInput* body) {
 
-        header.beginBits();
-        uint32 batch_id = header.readUInt32();
-        header.endBits();
+        header->beginBits();
+        uint32 batch_id = header->readUInt32();
+        header->endBits();
 
         // old frag, toss out
         if (batch_id != current_batch) return;
@@ -294,7 +294,7 @@ namespace Router{
                 try {
                     switch(iter.type()){
                         case PacketType::UPDATE: // reroute update from clients
-                            rerouteUpdate(iter.headerBinaryInput(), iter.binaryInput());
+                            rerouteUpdate(&iter.headerBinaryInput(), &iter.binaryInput());
                             break;
                         case PacketType::TERMINATE: // the client wants to stop
                             setState(TERMINATED);
@@ -321,7 +321,7 @@ namespace Router{
                         switch(iter.type()){
                             case PacketType::FRAGMENT: // a frame fragment
                                 cout << "remote " << conn_vars->id << "answered, total: " << (pieces + 1) << "/" << numRemotes() << endl;
-                                handleFragment(conn_vars, iter.headerBinaryInput(), iter.binaryInput());
+                                handleFragment(conn_vars, &iter.headerBinaryInput(), &iter.binaryInput());
                                 break;
                             case PacketType::TERMINATE:
                                 // handle failure
