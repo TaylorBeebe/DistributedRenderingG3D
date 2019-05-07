@@ -123,11 +123,15 @@
     <ClCompile Include="simpleGameDistributed\source\App.cpp" />
     <ClCompile Include="simpleGameDistributed\source\PhysicsScene.cpp" />
     <ClCompile Include="simpleGameDistributed\source\PlayerEntity.cpp" />
+    <ClCompile Include="src\Client.cpp" />
+    <ClCompile Include="src\RApp.cpp" />
+    <ClCompile Include="src\Remote.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="simpleGameDistributed\source\App.h" />
     <ClInclude Include="simpleGameDistributed\source\PhysicsScene.h" />
     <ClInclude Include="simpleGameDistributed\source\PlayerEntity.h" />
+    <ClInclude Include="src\DistributedRenderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

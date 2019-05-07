@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="impl\RemoteTest.cpp" />
+    <ClCompile Include="impl\ClientTest.cpp" />
     <ClCompile Include="src\Client.cpp" />
     <ClCompile Include="src\Remote.cpp" />
   </ItemGroup>
