@@ -63,7 +63,7 @@ namespace DistributedRenderer{
         
         try{
             // read the header
-            BinaryInput header = iter.headerBinaryInput();
+            BinaryInput& header = iter.headerBinaryInput();
             uint32 batch_id = header.readUInt32();
 
             switch(iter.type()){

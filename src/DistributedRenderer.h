@@ -115,7 +115,10 @@ namespace DistributedRenderer {
 				BinaryOutput* bo = BinaryUtils::create();
 
 				// copy all bytes
-				while (in->hasMore()) bo->writeInt8(in->readInt8());
+                const uint8* buffer = in->getCArray();
+                for (int i = 0; i < in->length(); i++) {
+                    bo->writeUInt8(buffer[i]);
+                }
 				
                 return bo;
             }
