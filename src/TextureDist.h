@@ -442,7 +442,7 @@ shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFo
 		shared_ptr<Image> i = Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
 		shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
 		shared_ptr<Image> i2 = Image::fromPixelTransferBuffer(p);
-		Array<shared_ptr<Image>> arr = { i2, i2, i2 };
+		Array<shared_ptr<Image>> arr = { i2, i2, i2, i2 };
 		shared_ptr<PixelTransferBuffer> p2 = Image::CombineImages(arr);
 		return Image::fromPixelTransferBuffer(p2);
 	}

@@ -460,7 +460,8 @@ shared_ptr<PixelTransferBuffer> Image::CombineImages(const Array<shared_ptr<Imag
 	for (int i = 0; i < images.size(); ++i) {
 		fipImage *currentImage = images[i]->m_image;
 		for (int row = 0; row < perImageHeight; ++row){
-			System::memcpy(data + i * memoryPerImage + (i * perImageHeight + row) * memoryPerRow, currentImage->getScanLine(perImageHeight - 1 - row), memoryPerRow);
+			System::memcpy(data + (i * memoryPerImage) + row * memoryPerRow, currentImage->getScanLine(perImageHeight - 1 - row), memoryPerRow);
+			//System::memcpy(data + i * memoryPerImage + ((i * perImageHeight) + row) * memoryPerRow, currentImage->getScanLine(perImageHeight - 1 - row), memoryPerRow);
 		}
 	}
 
