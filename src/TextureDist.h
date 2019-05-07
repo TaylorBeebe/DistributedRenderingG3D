@@ -438,12 +438,12 @@ shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFo
 	return buffer;
 }
 
-	shared_ptr<Image> toImage5(Rect2D rec = Rect2D::xyxy(0,0,0,0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
-		shared_ptr<Image> i = Image::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
+	shared_ptr<ImageDist> toImage5(Rect2D rec = Rect2D::xyxy(0,0,0,0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
+		shared_ptr<ImageDist> i = ImageDist::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
 		shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
-		shared_ptr<Image> i2 = Image::fromPixelTransferBuffer(p);
-		Array<shared_ptr<Image>> arr = { i2, i2, i2, i2 };
-		shared_ptr<PixelTransferBuffer> p2 = Image::CombineImages(arr);
-		return Image::fromPixelTransferBuffer(p2);
+		shared_ptr<ImageDist> i2 = ImageDist::fromPixelTransferBuffer(p);
+		Array<shared_ptr<ImageDist>> arr = { i2, i2, i2, i2 };
+		shared_ptr<PixelTransferBuffer> p2 = ImageDist::CombineImages(arr);
+		return ImageDist::fromPixelTransferBuffer(p2);
 	}
 };
