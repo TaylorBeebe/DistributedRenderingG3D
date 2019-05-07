@@ -131,6 +131,7 @@ namespace Router{
         // do any send preparations here
 		BinaryOutput* nb = BinaryUtils::copy(body);
 		BinaryOutput* nh = BinaryUtils::copy(header);
+
         conn->send(t, *nb, *nh, 0);
     }
 

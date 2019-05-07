@@ -91,24 +91,28 @@ namespace DistributedRenderer {
     // if we don't, the memory will be lost
     class BinaryUtils {
         public:
-			
+
+			static BinaryOutput* create() {
+				return new BinaryOutput("<memory>", G3DEndian::G3D_LITTLE_ENDIAN);
+			}
+
             // Make a simple, small "empty" packet for quick message sending
 			static BinaryOutput* empty() {
-				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				BinaryOutput* bo = BinaryUtils::create();
 				bo->writeBool8(1);
 				return bo;
 			}
 
             // Write a single unsigned integer to a binary output
             static BinaryOutput* toBinaryOutput(uint32 i) {
-                BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+                BinaryOutput* bo = BinaryUtils::create();
                 bo->writeUInt32(i);
                 return bo;
             }
 
             // Convert a BinaryInput to a BinaryOutput
             static BinaryOutput* toBinaryOutput(BinaryInput* in) {
-				BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+				BinaryOutput* bo = BinaryUtils::create();
 
 				// copy all bytes
 				while (in->hasMore()) bo->writeInt8(in->readInt8());
@@ -117,11 +121,14 @@ namespace DistributedRenderer {
             }
 
             static BinaryOutput* copy(BinaryOutput* out) {
-                BinaryOutput* bo = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+                BinaryOutput* bo = BinaryUtils::create();
 
                 // copy all bytes
-                bo->writeBits((uint32) *(out->getCArray()), out->length()*8);
-                
+				const uint8* buffer = out->getCArray();
+				for (int i = 0; i < out->length(); i++) {
+					bo->writeUInt8(buffer[i]);
+				}
+
                 return bo;
             }
 	};
