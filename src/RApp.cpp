@@ -23,6 +23,58 @@ namespace DistributedRenderer {
 		GApp::onInit();
 	}
 
+	int RApp::run() {
+		int ret = 0;
+		if (catchCommonExceptions) {
+			try {
+				onRun();
+				ret = m_exitCode;
+			}
+			catch (const char* e) {
+				alwaysAssertM(false, e);
+				ret = -1;
+			}
+			catch (const Image::Error& e) {
+				alwaysAssertM(false, e.reason + "\n" + e.filename);
+				ret = -1;
+			}
+			catch (const String& s) {
+				alwaysAssertM(false, s);
+				ret = -1;
+			}
+			catch (const TextInput::WrongTokenType& t) {
+				alwaysAssertM(false, t.message);
+				ret = -1;
+			}
+			catch (const TextInput::WrongSymbol& t) {
+				alwaysAssertM(false, t.message);
+				ret = -1;
+			}
+			catch (const LightweightConduit::PacketSizeException& e) {
+				alwaysAssertM(false, e.message);
+				ret = -1;
+			}
+			catch (const ParseError& e) {
+				alwaysAssertM(false, e.formatFileInfo() + e.message);
+				ret = -1;
+			}
+			catch (const FileNotFound& e) {
+				alwaysAssertM(false, e.message);
+				ret = -1;
+			}
+			catch (const std::exception& e) {
+				alwaysAssertM(false, e.what());
+				ret = -1;
+			}
+		}
+		else {
+			onRun();
+			ret = m_exitCode;
+		}
+
+		return ret;
+	}
+
 	// run is the next thing after the constructor finishes
 	void RApp::onRun() {
 		if (window()->requiresMainLoop()) { // this should never be free
@@ -45,7 +97,7 @@ namespace DistributedRenderer {
 			}
 
 			// initialize the connection and wait for the ready
-			//network_node->init_connection(Constants::ROUTER_ADDR);
+			network_node->init_connection(Constants::ROUTER_ADDR);
 
 			if (network_node->isTypeOf(NodeType::CLIENT)) {
 				// Main loop

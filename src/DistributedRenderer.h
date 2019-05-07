@@ -268,7 +268,8 @@ namespace DistributedRenderer {
             RApp(const GApp::Settings& settings, NodeType type = REMOTE);
 
             virtual void onInit() override;
-
+		
+			int run();
             void onRun();
             void oneFrame();
             virtual void oneFrameAdHoc(); 
