@@ -13,11 +13,11 @@ int main(int argc, const char* argv[]) {
     settings.window.width       = 1280; 
     settings.window.height      = 720;
 
-    return App(settings).run();
+	App(settings, NodeType::CLIENT).run();
 }
 
 
-App::App(const RApp::Settings& settings) : RApp(settings) {
+App::App(const GApp::Settings& settings, NodeType node_type) : RApp(settings, node_type) {
 }
 
 

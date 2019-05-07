@@ -28,6 +28,7 @@ namespace DistributedRenderer{
 						return;
                     case PacketType::READY:
 						// exit so the app can run
+						cout << "Network is ready" << endl;
                         ready = true;
                         break;
                     default: break;

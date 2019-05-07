@@ -2,7 +2,7 @@
 
 */
 
-#include "RApp.h"
+#include "DistributedRenderer.h"
 //#include <time.h>
 #include <mutex>
 
@@ -10,36 +10,17 @@ static const float BACKGROUND_FRAME_RATE = 4.0;
 
 namespace DistributedRenderer {
 
-	RApp::RApp(const GApp::Settings& settings, NodeType type) {
-		// create a custom OSWindow
-		OSWindow* window = GLFWWindow::create();
-		// create custom RenderDevice
-		RenderDevice* rd = new RenderDevice();
+	RApp::RApp(const GApp::Settings& settings, NodeType type) : GApp(settings, nullptr, nullptr, true), r_lastWaitTime(System::time()) {
 
-
-		//WARNING: This is downcasting because network_node is type NetworkNode.
-		//Check with Michael to see if there's a better way to go about this.
+		// TODO: include custom renderdevice and window and initialize them here
 
 		// create node
 		if (type == NodeType::CLIENT) network_node = new Client(this);
 		else network_node = new Remote(this, true);
-
-		G3D::GApp(settings, window, rd, true);
-
-
-		//WARNING: No member "finishedSetup()"
-		//if (type == NodeType::REMOTE) network_node.finishedSetup();
-
-		// now that the scene is set up, we can register all the entities
-		if(scene()) {
-			Array<shared_ptr<Entity>>* entities = new Array<shared_ptr<Entity>>();
-			scene()->getEntityArray(*entities);
-			network_node->trackEntities(entities);
-		}
-
 	}
 
 	void DistributedRenderer::RApp::onInit(){
+		GApp::onInit();
 	}
 
 	// run is the next thing after the constructor finishes
@@ -54,10 +35,17 @@ namespace DistributedRenderer {
 		else {
 			beginRun();
 
-			//debugAssertGLOk();
+			debugAssertGLOk();
+
+			// now that the scene is set up, we can register all the entities
+			if (scene()) {
+				Array<shared_ptr<Entity>>* entities = new Array<shared_ptr<Entity>>();
+				scene()->getEntityArray(*entities);
+				network_node->trackEntities(entities);
+			}
 
 			// initialize the connection and wait for the ready
-			network_node->init_connection(Constants::ROUTER_ADDR);
+			//network_node->init_connection(Constants::ROUTER_ADDR);
 
 			if (network_node->isTypeOf(NodeType::CLIENT)) {
 				// Main loop
@@ -191,23 +179,24 @@ namespace DistributedRenderer {
 			{
 				RealTime rdt = timeStep;
 
-				SimTime sdt = m_simTimeStep;
+				SimTime sdt = simStepDuration();
 				if (sdt == MATCH_REAL_TIME_TARGET) {
-					sdt = m_wallClockTargetDuration;
+					sdt = realTimeTargetDuration();
 				}
 				else if (sdt == REAL_TIME) {
 					sdt = float(timeStep);
 				}
-				sdt *= m_simTimeScale;
+				sdt *= simulationTimeScale();
 
-				SimTime idt = m_wallClockTargetDuration;
+				SimTime idt = realTimeTargetDuration();
 
 				onBeforeSimulation(rdt, sdt, idt);
 				onSimulation(rdt, sdt, idt);
 				onAfterSimulation(rdt, sdt, idt);
 
-				m_previousSimTimeStep = float(sdt);
-				m_previousRealTimeStep = float(rdt);
+				// no way to overwrite the base class private fields :(
+				// m_previousSimTimeStep = float(sdt);
+				// m_previousRealTimeStep = float(rdt);
 				setRealTime(realTime() + rdt);
 				setSimTime(simTime() + sdt);
 			}
@@ -215,14 +204,14 @@ namespace DistributedRenderer {
 			//END_PROFILER_EVENT();
 		}
 
-		Client* client = (Client*) network_node;
+		//Client* client = (Client*) network_node;
 		// after the simulation period, we will wait until our sands are run
-		RealTime deadline = timeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
+		//RealTime deadline = timeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
 
 		// send the update
-		client->sendUpdate();
+		//client->sendUpdate();
 
-		while (timeStep <= deadline) client->checkNetwork();
+		//while (timeStep <= deadline) client->checkNetwork();
 
 		// Pose
 		//BEGIN_PROFILER_EVENT("Pose");
@@ -248,12 +237,12 @@ namespace DistributedRenderer {
 			RealTime nowAfterLoop = System::time();
 
 			// Compute accumulated time
-			RealTime cumulativeTime = nowAfterLoop - m_lastWaitTime;
+			RealTime cumulativeTime = nowAfterLoop - r_lastWaitTime;
 
 			//debugAssert(m_wallClockTargetDuration < finf());
 			// Perform wait for actual time needed
-			RealTime duration = m_wallClockTargetDuration;
-			if (!window()->hasFocus() && m_lowerFrameRateInBackground) {
+			RealTime duration = realTimeTargetDuration();
+			if (!window()->hasFocus() && lowerFrameRateInBackground()) {
 				// Lower frame rate
 				duration = 1.0 / BACKGROUND_FRAME_RATE;
 			}
@@ -261,8 +250,8 @@ namespace DistributedRenderer {
 			onWait(std::max(0.0, desiredWaitTime - m_lastFrameOverWait) * 0.97);
 
 			// Update wait timers
-			m_lastWaitTime = System::time();
-			RealTime actualWaitTime = m_lastWaitTime - nowAfterLoop;
+			r_lastWaitTime = System::time();
+			RealTime actualWaitTime = r_lastWaitTime - nowAfterLoop;
 
 			// Learn how much onWait appears to overshoot by and compensate
 			double thisOverWait = actualWaitTime - desiredWaitTime;
@@ -338,8 +327,8 @@ namespace DistributedRenderer {
 			onGraphics3D(rd, posed3D);
 		} rd->popState();
 
-		if (notNull(m_screenCapture)) {
-			m_screenCapture->onAfterGraphics3D(rd);
+		if (notNull(screenCapture())) {
+			screenCapture()->onAfterGraphics3D(rd);
 		}
 
 		// only draw 2D graphics can be drawn on the client
@@ -349,8 +338,8 @@ namespace DistributedRenderer {
 				onGraphics2D(rd, posed2D);
 			} rd->pop2D();
 
-			if (notNull(m_screenCapture)) {
-				m_screenCapture->onAfterGraphics2D(rd);
+			if (notNull(screenCapture())) {
+				screenCapture()->onAfterGraphics2D(rd);
 			}
 
 		}
