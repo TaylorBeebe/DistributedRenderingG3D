@@ -205,8 +205,12 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurface
 
 		shared_ptr<TextureDist> td = dynamic_pointer_cast<TextureDist>(m_finalFramebuffer->texture(0));
 
+		shared_ptr<ImageDist> i = td->toImage5(Rect2D::xyxy(0, 0, td->width(), td->height() / 4));
+
+		Array<shared_ptr<ImageDist>> imageArray = {i,i,i,i};
+
         // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
-		sendImage(td->toImage5(Rect2D::xyxy(0,0,td->width(),td->height()/4),ImageFormat::RGB8()), array, Image::JPEG);
+		sendImage(TextureDist::CombineImages(imageArray), array, Image::JPEG);
         clientWantsImage = 0;
     }
 }
