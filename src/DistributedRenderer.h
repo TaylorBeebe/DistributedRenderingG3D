@@ -186,7 +186,7 @@ namespace DistributedRenderer {
                 return false;
             }
 
-            void disconnect() {send(PacketType::TERMINATE)}
+            void disconnect() {send(PacketType::TERMINATE);}
 
             bool isTypeOf(NodeType t){ return t == type; }
 
