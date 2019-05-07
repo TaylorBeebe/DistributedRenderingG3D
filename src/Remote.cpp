@@ -59,19 +59,16 @@ namespace DistributedRenderer{
     void Remote::receive() {
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
-        uint batch_id;
-
         if(!iter.isValid()) return;
         
         try{
             // read the header
-            BinaryInput& header = iter.headerBinaryInput();
-
-            batch_id = header.readUInt32();
+            BinaryInput* header = iter.headerBinaryInput();
+            uint32 batch_id = header->readUInt32();
 
             switch(iter.type()){
                 case PacketType::UPDATE: // update data
-                    sync(&iter.binaryInput());
+                    sync(iter.binaryInput());
                     // the_app.oneFrameAdHoc();
                     sendFrame(batch_id);
                     break;
@@ -86,8 +83,6 @@ namespace DistributedRenderer{
                     debugPrintf("Remote Node received incompatible packet type\n");
 
             } // end switch
-
-            header.endBits();
 
         } catch(...) { // something went wrong decoding the message
             // handle error or do nothing
