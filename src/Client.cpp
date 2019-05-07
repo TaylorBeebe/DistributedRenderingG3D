@@ -48,7 +48,6 @@ namespace DistributedRenderer{
         try{
 
             BinaryInput& header = iter.headerBinaryInput();
-            header.beginBits();
             uint32 batch_id = header.readUInt32();
 
 			shared_ptr<Image> frame;
@@ -69,9 +68,6 @@ namespace DistributedRenderer{
                     debugPrintf("Client received incompatible packet type\n");
                     break;   
             } // end switch
-
-            header.endBits();
-
         } catch(...) {
             // handle error
         }

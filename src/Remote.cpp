@@ -48,7 +48,6 @@ namespace DistributedRenderer{
     }
 
 	void Remote::setClip(BinaryInput* bi) {
-        bi->beginBits();
 		uint32 y = bi->readUInt32();
 		uint32 h = bi->readUInt32();
 
@@ -67,7 +66,6 @@ namespace DistributedRenderer{
         try{
             // read the header
             BinaryInput& header = iter.headerBinaryInput();
-            header.beginBits();
 
             batch_id = header.readUInt32();
 
