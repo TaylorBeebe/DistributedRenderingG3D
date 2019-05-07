@@ -61,9 +61,7 @@ namespace Router{
 
     void Router::rerouteUpdate(BinaryInput* header, BinaryInput* body) {
        
-        header->beginBits();
         current_batch = header->readUInt32();
-        header->endBits();
 
         cout << "Rerouting update packet no. " << current_batch << endl;
 
@@ -80,9 +78,7 @@ namespace Router{
 
     void Router::handleFragment(remote_connection_t* conn_vars, BinaryInput* header, BinaryInput* body) {
 
-        header->beginBits();
         uint32 batch_id = header->readUInt32();
-        header->endBits();
 
         // old frag, toss out
         if (batch_id != current_batch) return;
