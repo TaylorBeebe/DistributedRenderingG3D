@@ -242,10 +242,10 @@ namespace DistributedRenderer {
         protected:
             Rect2D bounds; 
             
-            void sync(BinaryInput& update);
+            void sync(BinaryInput* update);
             void sendFrame(uint32 batch_id);
 
-            void setClip(BinaryInput& bi);
+            void setClip(BinaryInput* bi);
             void setClip(uint32 y, uint32 height);
             
             void onConnect() override;
