@@ -186,6 +186,8 @@ namespace DistributedRenderer {
                 return false;
             }
 
+            void disconnect() {send(PacketType::TERMINATE)}
+
             bool isTypeOf(NodeType t){ return t == type; }
 
             bool isConnected() { 
@@ -232,7 +234,7 @@ namespace DistributedRenderer {
             void setEntityChanged(shared_ptr<Entity> e);
             void sendUpdate();
 
-            void checkNetwork();
+            bool checkNetwork();
 
     };
 

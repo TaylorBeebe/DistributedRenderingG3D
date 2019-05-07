@@ -55,7 +55,6 @@ namespace Router{
     void Router::stitch(remote_connection_t* conn_vars, Image& fragment) {}
 
 
-
 // =========================================
 //              Packet Handling
 // =========================================

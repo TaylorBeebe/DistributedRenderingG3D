@@ -39,11 +39,11 @@ namespace DistributedRenderer{
 
     // checks the network once and handles all available messages
     // wrap in a loop to repeatedly poll the network
-    void Client::checkNetwork(){
+    bool Client::checkNetwork(){
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
 
-        if(!iter.isValid()) return;
+        if(!iter.isValid()) return false;
 
         try{
 

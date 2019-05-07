@@ -115,6 +115,8 @@ namespace DistributedRenderer{
             float roll = update.readFloat32();
 
             getEntityByID(id)->frame().fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
+
+            cout << "Updated entity " << id << " at (" << x << ", " << y << ", " << z << ")" endl;
         }
     }
 
@@ -128,6 +130,6 @@ namespace DistributedRenderer{
         // that thread and spawn a new one
 
         // store it in packet and send it
-        send(PacketType::FRAGMENT);
+        // send(PacketType::FRAGMENT);
     }
 }
