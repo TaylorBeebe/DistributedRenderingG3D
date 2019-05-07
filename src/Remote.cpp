@@ -63,12 +63,12 @@ namespace DistributedRenderer{
         
         try{
             // read the header
-            BinaryInput* header = iter.headerBinaryInput();
-            uint32 batch_id = header->readUInt32();
+            BinaryInput header = iter.headerBinaryInput();
+            uint32 batch_id = header.readUInt32();
 
             switch(iter.type()){
                 case PacketType::UPDATE: // update data
-                    sync(iter.binaryInput());
+                    sync(&iter.binaryInput());
                     // the_app.oneFrameAdHoc();
                     sendFrame(batch_id);
                     break;
