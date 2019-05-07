@@ -93,7 +93,7 @@ namespace DistributedRenderer{
         current_batch_id++;
 
         // serialize 
-		BinaryOutput* batch = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+		BinaryOutput* batch = BinaryUtils::create();
 
         // this currently loops through every entity
         // this is inefficient and should be improved such that we only iterate through a 

@@ -196,7 +196,7 @@ namespace Router{
             remote_connection_t* cv = iter->second;
 
             // send the config data
-            BinaryOutput* config = new BinaryOutput("<memory>", G3DEndian::G3D_BIG_ENDIAN);
+            BinaryOutput* config = BinaryUtils::create();
 
             config->writeUInt32(curr_y);
             config->writeUInt32(frag_height);
