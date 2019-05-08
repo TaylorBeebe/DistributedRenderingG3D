@@ -158,7 +158,7 @@ namespace DistributedRenderer {
             // which should be the same over all instances of the application 
             // then at runtime, transforms will be synced across the network
             // before rendering a frame
-            Array<shared_ptr<Entity>> entities;
+            Vector<shared_ptr<Entity>> entities;
             map<String, uint32> entity_index_by_name;
 
             shared_ptr<NetConnection> connection; 
@@ -208,7 +208,7 @@ namespace DistributedRenderer {
                 for(int i = 0; i < e->size(); i++){
                     shared_ptr<Entity> ent = (*e)[i];
                     if(!ent->canChange()){
-                        entities[index] = ent;
+                        entities.push_back(ent);
                         entity_index_by_name[ent->name()] = index++;
                     }
                 }
