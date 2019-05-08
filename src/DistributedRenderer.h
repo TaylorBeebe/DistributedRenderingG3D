@@ -116,7 +116,7 @@ namespace DistributedRenderer {
 
 				// copy all bytes
                 const uint8* buffer = in->getCArray();
-                for (int i = 0; i < in->length(); i++) {
+                for (int i = 0; i < in->getLength(); i++) {
                     bo->writeUInt8(buffer[i]);
                 }
 				
