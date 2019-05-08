@@ -206,7 +206,7 @@ namespace DistributedRenderer {
                 // make an ID lookup for tracking
                 int index = 0;
                 for(int i = 0; i < e->size(); i++){
-                    shared_ptr<Entity> ent = e->at(i);
+                    shared_ptr<Entity> ent = (*e)[i];
                     if(!ent->canChange()){
                         entities[index] = ent;
                         entity_index_by_name[ent->name()] = index++;

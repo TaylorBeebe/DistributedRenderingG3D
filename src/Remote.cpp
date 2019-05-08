@@ -56,10 +56,10 @@ namespace DistributedRenderer{
 		setClip(y, h);
 	}
 
-    bool Remote::receive() {
+    void Remote::receive() {
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
-        if(!iter.isValid()) return false;
+        if(!iter.isValid()) return;
         
         try{
             // read the header
