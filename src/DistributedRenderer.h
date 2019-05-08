@@ -203,10 +203,14 @@ namespace DistributedRenderer {
             // register all entities to be tracked by the network 
             // currently, this does not support adding or removing entities
             void trackEntities(Array<shared_ptr<Entity>>* e) {
-                entities = *e;
                 // make an ID lookup for tracking
-                for(int i = 0; i < entities.size(); i++){
-                    entity_index_by_name[entities[i]->name()] = i;
+                int index = 0;
+                for(int i = 0; i < e->size(); i++){
+                    shared_ptr<Entity> ent = e->at(i);
+                    if(!ent->canChange()){
+                        entities[index] = ent;
+                        entity_index_by_name[ent->name()] = index++;
+                    }
                 }
             }
 
@@ -225,7 +229,7 @@ namespace DistributedRenderer {
             uint32 current_batch_id = 0; 
             float ms_to_deadline = 0;
 
-            set<unsigned int> changed_entities;
+            RealTime last_update = 0;
 
             // frame cache
 
@@ -234,7 +238,6 @@ namespace DistributedRenderer {
         public:
             Client(RApp* app);
             
-            void setEntityChanged(shared_ptr<Entity> e);
             void sendUpdate();
 
             bool checkNetwork();

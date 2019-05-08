@@ -250,7 +250,6 @@ namespace Router{
         } // end main loop
     }
 
-
     bool Router::setup() {
 
         server = NetServer::create(Constants::ROUTER_ADDR, 32, 1);

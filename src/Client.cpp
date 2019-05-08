@@ -75,12 +75,6 @@ namespace DistributedRenderer{
         ++iter;
     }
 
-    // Use this method to mark an entity to be updated on the network
-    void Client::setEntityChanged(shared_ptr<Entity> e){
-        // safety check
-        changed_entities.insert(getEntityIDByName(e->name()));
-    }
-
 	// send an update on the network with a batch ID
 	// the processed batch frame will need to return by the next deadline
 	// or else the client will use a low qual render instead
@@ -92,17 +86,15 @@ namespace DistributedRenderer{
         // serialize 
 		BinaryOutput* batch = BinaryUtils::create();
 
-        // this currently loops through every entity
-        // this is inefficient and should be improved such that we only iterate through a 
-        // set of ids that were changed
-        int id = 0;
-        for (Array<shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ++it){
-            shared_ptr<Entity> ent = *it;
+        for (int i = 0; i < entities.size(); i++){
+            shared_ptr<Entity> ent = entities[i];
+
+            if(ent->lastChangeTime() < last_update) continue;
 
             float x,y,z,yaw,pitch,roll;
             ent->frame().getXYZYPRRadians(x,y,z,yaw,pitch,roll);
 
-            batch->writeUInt32(id++);
+            batch->writeUInt32(getEntityIDByName(ent->name()));
 			batch->writeFloat32(x);
 			batch->writeFloat32(y);
 			batch->writeFloat32(z);
@@ -113,8 +105,7 @@ namespace DistributedRenderer{
 
         // net message send batch to router ip
         send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
+        last_update = System::time();
 
-        // clear recently used
-        // changed_entities.erase();
     }
 }

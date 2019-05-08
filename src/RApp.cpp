@@ -107,8 +107,9 @@ namespace DistributedRenderer {
 			else {
 				// Busy wait for a message then do a render
 				// This can be improved in the future (and should be) by making the thread sleep
+				Remote* remote = (Remote*) network_node;
 				do {
-					((Remote*) network_node)->receive();
+					remote->receive();
 				} while (!m_endProgram);
 			}
 

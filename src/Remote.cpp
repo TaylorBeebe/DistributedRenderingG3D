@@ -56,10 +56,10 @@ namespace DistributedRenderer{
 		setClip(y, h);
 	}
 
-    void Remote::receive() {
+    bool Remote::receive() {
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
-        if(!iter.isValid()) return;
+        if(!iter.isValid()) return false;
         
         try{
             // read the header
@@ -69,7 +69,7 @@ namespace DistributedRenderer{
             switch(iter.type()){
                 case PacketType::UPDATE: // update data
                     sync(&iter.binaryInput());
-                    // the_app.oneFrameAdHoc();
+                    the_app->oneFrameAdHoc();
                     sendFrame(batch_id);
                     break;
 
@@ -108,9 +108,9 @@ namespace DistributedRenderer{
             float pitch = update->readFloat32();
             float roll = update->readFloat32();
 
-            getEntityByID(id)->frame().fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
+            CoordinateFrame nextframe = CoordinateFrame::fromXYZYPRRadians(x,y,z,yaw,pitch,roll);
+            getEntityByID(id)->setFrame(nextframe, true);
 
-            cout << "Updated entity " << id << " at (" << x << ", " << y << ", " << z << ")" << endl;
         }
     }
 
