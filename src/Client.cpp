@@ -94,7 +94,7 @@ namespace DistributedRenderer{
             float x,y,z,yaw,pitch,roll;
             ent->frame().getXYZYPRRadians(x,y,z,yaw,pitch,roll);
 
-            batch->writeUInt32(getEntityIDByName(ent->name()));
+            batch->writeUInt32(i);
 			batch->writeFloat32(x);
 			batch->writeFloat32(y);
 			batch->writeFloat32(z);
@@ -104,8 +104,10 @@ namespace DistributedRenderer{
         }
 
         // net message send batch to router ip
-        send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
-        last_update = System::time();
+        if(batch->length() > 0){
+            send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
+            last_update = System::time();
+        }
 
     }
 }

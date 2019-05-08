@@ -207,7 +207,7 @@ namespace DistributedRenderer {
                 int index = 0;
                 for(int i = 0; i < e->size(); i++){
                     shared_ptr<Entity> ent = (*e)[i];
-                    if(!ent->canChange()){
+                    if(ent->canChange()){
                         entities.push_back(ent);
                         entity_index_by_name[ent->name()] = index++;
                     }
