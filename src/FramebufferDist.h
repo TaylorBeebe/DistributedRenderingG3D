@@ -83,6 +83,12 @@ namespace G3D {
 
 			return f;
 		}
+
+		void setTexture0(const shared_ptr<Texture>& t0) {
+
+			this->set(COLOR0, t0);
+		
+		}
 		
 	};
 }

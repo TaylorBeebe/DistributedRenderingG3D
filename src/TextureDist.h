@@ -5,7 +5,7 @@
 
 class TextureDist : public Texture {
 
-public:
+	public:
 
 	TextureDist(const String& name,int width, int height,int depth,Dimension dimension,const Encoding& encoding,int numSamples,bool needsForce) : 
 		Texture::Texture(name, width, height, depth, dimension, encoding, numSamples, needsForce) {}
@@ -226,8 +226,8 @@ public:
 							numSamples,
 							encoding);
 
-#if 0 // Avoid GPU-CPU sync
-#               ifndef G3D_DEBUG
+	#if 0 // Avoid GPU-CPU sync
+	#               ifndef G3D_DEBUG
 						{
 							GLenum e = glGetError();
 							if (e == GL_OUT_OF_MEMORY) {
@@ -243,8 +243,8 @@ public:
 								}
 							}
 						}
-#               endif
-#endif
+	#               endif
+	#endif
 					}
 
 					mipWidth = G3D::max(1, mipWidth / 2);
@@ -307,136 +307,178 @@ public:
 	}
 
 	void toPixelTransferBuffer(shared_ptr<GLPixelTransferBuffer>& buffer, const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X, bool runMapHooks = true) const {
-	debugAssertGLOk();
-	force();
-	if (outFormat == ImageFormat::AUTO()) {
-		outFormat = format();
-	}
-	debugAssertGLOk();
-	alwaysAssertM(!isSRGBFormat(outFormat) || isSRGBFormat(format()), "glGetTexImage doesn't do sRGB conversion, so we need to first copy an RGB texture to sRGB on the GPU. However, this functionality is broken as of the time of writing this code");
-
-	const bool cpuSRGBConversion = isSRGBFormat(format()) && !isSRGBFormat(outFormat) && (m_dimension == DIM_CUBE_MAP);
-
-	BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer");
-
-	if (outFormat == format()) {
-		if (outFormat == ImageFormat::SRGB8()) {
-			outFormat = ImageFormat::RGB8();
+		debugAssertGLOk();
+		force();
+		if (outFormat == ImageFormat::AUTO()) {
+			outFormat = format();
 		}
-		else if (outFormat == ImageFormat::SRGBA8()) {
-			outFormat = ImageFormat::RGBA8();
+		debugAssertGLOk();
+		alwaysAssertM(!isSRGBFormat(outFormat) || isSRGBFormat(format()), "glGetTexImage doesn't do sRGB conversion, so we need to first copy an RGB texture to sRGB on the GPU. However, this functionality is broken as of the time of writing this code");
+
+		const bool cpuSRGBConversion = isSRGBFormat(format()) && !isSRGBFormat(outFormat) && (m_dimension == DIM_CUBE_MAP);
+
+		BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer");
+
+		if (outFormat == format()) {
+			if (outFormat == ImageFormat::SRGB8()) {
+				outFormat = ImageFormat::RGB8();
+			}
+			else if (outFormat == ImageFormat::SRGBA8()) {
+				outFormat = ImageFormat::RGBA8();
+			}
 		}
-	}
 
-	// Need to call before binding in case an external
-	// application (CUDA) has this buffer mapped.
-	if (runMapHooks) {
-		buffer->runMapHooks();
-	}
+		// Need to call before binding in case an external
+		// application (CUDA) has this buffer mapped.
+		if (runMapHooks) {
+			buffer->runMapHooks();
+		}
 
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer->glBufferID()); {
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer->glBufferID()); {
+			debugAssertGLOk();
+
+			glBindTexture(openGLTextureTarget(), openGLID()); {
+				debugAssertGLOk();
+				GLenum target;
+				if (isCubeMap()) {
+					target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face;
+				}
+				else {
+					// Not a cubemap
+					target = openGLTextureTarget();
+				}
+
+				bool alignmentNeedsToChange;
+				GLint oldPackAlignment;
+				const GLint newPackAlignment = getPackAlignment((int)buffer->stride(), oldPackAlignment, alignmentNeedsToChange);
+
+				debugAssertM(!((outFormat == ImageFormat::R32F()) && (m_encoding.format == ImageFormat::DEPTH32F())), "Read back DEPTH32F as DEPTH32F, not R32F");
+				if (alignmentNeedsToChange) {
+					glPixelStorei(GL_PACK_ALIGNMENT, newPackAlignment);
+					debugAssertGLOk();
+				}
+
+				BEGIN_PROFILER_EVENT("glGetTexImage");
+				debugAssertGLOk();
+				glGetTexImage(target, mipLevel, outFormat->openGLBaseFormat, outFormat->openGLDataFormat, 0);
+				debugAssertGLOk();
+				END_PROFILER_EVENT();
+				if (alignmentNeedsToChange) {
+					glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);
+					debugAssertGLOk();
+				}
+
+			} glBindTexture(openGLTextureTarget(), GL_NONE);
+
+		} glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
 		debugAssertGLOk();
 
-		glBindTexture(openGLTextureTarget(), openGLID()); {
-			debugAssertGLOk();
-			GLenum target;
-			if (isCubeMap()) {
-				target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face;
-			}
-			else {
-				// Not a cubemap
-				target = openGLTextureTarget();
-			}
-
-			bool alignmentNeedsToChange;
-			GLint oldPackAlignment;
-			const GLint newPackAlignment = getPackAlignment((int)buffer->stride(), oldPackAlignment, alignmentNeedsToChange);
-
-			debugAssertM(!((outFormat == ImageFormat::R32F()) && (m_encoding.format == ImageFormat::DEPTH32F())), "Read back DEPTH32F as DEPTH32F, not R32F");
-			if (alignmentNeedsToChange) {
-				glPixelStorei(GL_PACK_ALIGNMENT, newPackAlignment);
-				debugAssertGLOk();
-			}
-
-			BEGIN_PROFILER_EVENT("glGetTexImage");
-			debugAssertGLOk();
-			glGetTexImage(target, mipLevel, outFormat->openGLBaseFormat, outFormat->openGLDataFormat, 0);
-			debugAssertGLOk();
+		if (cpuSRGBConversion) {
+			BEGIN_PROFILER_EVENT("CPU sRGB -> RGB conversion");
+			// Fix sRGB
+			alwaysAssertM(outFormat == ImageFormat::RGB32F(), "CubeMap sRGB -> RGB conversion only supported for RGB32F format output");
+			Color3* ptr = (Color3*)buffer->mapReadWrite();
+			runConcurrently(0, int(buffer->size() / sizeof(Color3)), [&](int i) {
+				ptr[i] = ptr[i].sRGBToRGB();
+			});
+			buffer->unmap();
+			ptr = nullptr;
 			END_PROFILER_EVENT();
-			if (alignmentNeedsToChange) {
-				glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);
-				debugAssertGLOk();
-			}
+		}
 
-		} glBindTexture(openGLTextureTarget(), GL_NONE);
-
-	} glBindBuffer(GL_PIXEL_PACK_BUFFER, GL_NONE);
-	debugAssertGLOk();
-
-	if (cpuSRGBConversion) {
-		BEGIN_PROFILER_EVENT("CPU sRGB -> RGB conversion");
-		// Fix sRGB
-		alwaysAssertM(outFormat == ImageFormat::RGB32F(), "CubeMap sRGB -> RGB conversion only supported for RGB32F format output");
-		Color3* ptr = (Color3*)buffer->mapReadWrite();
-		runConcurrently(0, int(buffer->size() / sizeof(Color3)), [&](int i) {
-			ptr[i] = ptr[i].sRGBToRGB();
-		});
-		buffer->unmap();
-		ptr = nullptr;
 		END_PROFILER_EVENT();
 	}
 
-	END_PROFILER_EVENT();
-}
+	shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
+		force();
+		if (outFormat == ImageFormat::AUTO()) {
+			outFormat = format();
+		}
+		debugAssertGLOk();
+		alwaysAssertM(!isSRGBFormat(outFormat) || isSRGBFormat(format()), "glGetTexImage doesn't do sRGB conversion, so we need to first copy an RGB texture to sRGB on the GPU. However, this functionality is broken as of the time of writing this code");
 
-shared_ptr<GLPixelTransferBuffer> toPixelTransferBuffer(const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
-	force();
-	if (outFormat == ImageFormat::AUTO()) {
-		outFormat = format();
-	}
-	debugAssertGLOk();
-	alwaysAssertM(!isSRGBFormat(outFormat) || isSRGBFormat(format()), "glGetTexImage doesn't do sRGB conversion, so we need to first copy an RGB texture to sRGB on the GPU. However, this functionality is broken as of the time of writing this code");
+		const bool cpuSRGBConversion = isSRGBFormat(format()) && !isSRGBFormat(outFormat) && (m_dimension == DIM_CUBE_MAP);
 
-	const bool cpuSRGBConversion = isSRGBFormat(format()) && !isSRGBFormat(outFormat) && (m_dimension == DIM_CUBE_MAP);
+		if (isSRGBFormat(format()) && !isSRGBFormat(outFormat) && !cpuSRGBConversion) {
+			BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer (slow path)");
+			// Copy to non-srgb texture first, forcing OpenGL to perform the sRGB conversion in a pixel shader
+			const shared_ptr<TextureDist>& temp = TextureDist::createEmpty("Temporary copy", m_width, m_height, outFormat, m_dimension, false, m_depth);
+			Texture::copy(dynamic_pointer_cast<TextureDist>(const_cast<TextureDist*>(this)->shared_from_this()), temp);
+			shared_ptr<GLPixelTransferBuffer> buffer = GLPixelTransferBuffer::create(m_width, m_height, outFormat);
+			temp->toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
 
-	if (isSRGBFormat(format()) && !isSRGBFormat(outFormat) && !cpuSRGBConversion) {
-		BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer (slow path)");
-		// Copy to non-srgb texture first, forcing OpenGL to perform the sRGB conversion in a pixel shader
-		const shared_ptr<TextureDist>& temp = TextureDist::createEmpty("Temporary copy", m_width, m_height, outFormat, m_dimension, false, m_depth);
-		Texture::copy(dynamic_pointer_cast<TextureDist>(const_cast<TextureDist*>(this)->shared_from_this()), temp);
-		shared_ptr<GLPixelTransferBuffer> buffer = GLPixelTransferBuffer::create(m_width, m_height, outFormat);
-		temp->toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
+			END_PROFILER_EVENT();
+			return buffer;
+		}
 
+		BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer");
+		// OpenGL's sRGB readback is non-intuitive.  If we're reading from sRGB to sRGB, we actually read back using "RGB".
+		if (outFormat == format()) {
+			if (outFormat == ImageFormat::SRGB8()) {
+				outFormat = ImageFormat::RGB8();
+			}
+			else if (outFormat == ImageFormat::SRGBA8()) {
+				outFormat = ImageFormat::RGBA8();
+			}
+		}
+		int mipDepth = 1;
+		if (dimension() == DIM_3D) {
+			mipDepth = depth() >> mipLevel;
+		}
+		else if (dimension() == DIM_2D_ARRAY) {
+			mipDepth = depth();
+		}
+
+		BEGIN_PROFILER_EVENT("GLPixelTransferBuffer::create");
+		shared_ptr<GLPixelTransferBuffer> buffer = GLPixelTransferBuffer::create(width() >> mipLevel, height() >> mipLevel, outFormat, nullptr, mipDepth, GL_STATIC_READ);
+		END_PROFILER_EVENT();
+
+		toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
 		END_PROFILER_EVENT();
 		return buffer;
 	}
 
-	BEGIN_PROFILER_EVENT("G3D::Texture::toPixelTransferBuffer");
-	// OpenGL's sRGB readback is non-intuitive.  If we're reading from sRGB to sRGB, we actually read back using "RGB".
-	if (outFormat == format()) {
-		if (outFormat == ImageFormat::SRGB8()) {
-			outFormat = ImageFormat::RGB8();
-		}
-		else if (outFormat == ImageFormat::SRGBA8()) {
-			outFormat = ImageFormat::RGBA8();
-		}
-	}
-	int mipDepth = 1;
-	if (dimension() == DIM_3D) {
-		mipDepth = depth() >> mipLevel;
-	}
-	else if (dimension() == DIM_2D_ARRAY) {
-		mipDepth = depth();
+	shared_ptr<TextureDist> fromPixelTransferBuffer (
+		const String& name,
+		const shared_ptr<PixelTransferBuffer>& ptb,
+		Encoding desiredEncoding = Encoding(),
+		Dimension dimension = DIM_2D,
+		bool generateMipMaps = true,
+		const Preprocess& preprocess = Preprocess::defaults()) {
+
+		const shared_ptr<TextureDist>& t = createShared<TextureDist>(name, ptb->width(), ptb->height(), ptb->depth(), dimension, desiredEncoding, 1, false);
+		s_allTextures.set((uintptr_t)t.get(), t);
+		// Convert to PixelTransferBuffers using the same memory
+
+		t->m_loadingInfo = new LoadingInfo(LoadingInfo::PREPROCESS);
+
+		LoadingInfo& info = *t->m_loadingInfo;
+		info.ptbArray.resize(1);
+		info.ptbArray[0].append(ptb);
+
+		info.desiredEncoding = desiredEncoding;
+		// Because the data are shared, we cannot lazy load
+		info.lazyLoadable = false;
+		info.generateMipMaps = generateMipMaps;
+		info.preprocess = preprocess;
+
+		t->completeCPULoading();
+		t->completeGPULoading();
+
+		return t;
 	}
 
-	BEGIN_PROFILER_EVENT("GLPixelTransferBuffer::create");
-	shared_ptr<GLPixelTransferBuffer> buffer = GLPixelTransferBuffer::create(width() >> mipLevel, height() >> mipLevel, outFormat, nullptr, mipDepth, GL_STATIC_READ);
-	END_PROFILER_EVENT();
+	shared_ptr<TextureDist> fromImage(
+		const String& name,
+		const shared_ptr<Image>& image,
+		const ImageFormat* desiredFormat = ImageFormat::AUTO(),
+		Dimension dimension = DIM_2D,
+		bool generateMipMaps = true,
+		const Preprocess& preprocess = Preprocess::defaults()) {
 
-	toPixelTransferBuffer(buffer, outFormat, mipLevel, face);
-	END_PROFILER_EVENT();
-	return buffer;
-}
+		return fromPixelTransferBuffer(name, image->toPixelTransferBuffer(), desiredFormat, dimension, generateMipMaps, preprocess);
+	
+	}
 
 	shared_ptr<ImageDist> toImage5(Rect2D rec = Rect2D::xyxy(0,0,0,0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
 		shared_ptr<ImageDist> i = ImageDist::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
