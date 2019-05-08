@@ -114,8 +114,8 @@ namespace DistributedRenderer{
 				void configuration();
 
 				// packet handlers
-				void rerouteUpdate(BinaryInput& header, BinaryInput& body);
-				void handleFragment(remote_connection_t* conn_vars, BinaryInput& header, BinaryInput& body);
+				void rerouteUpdate(BinaryInput* header, BinaryInput* body);
+				void handleFragment(remote_connection_t* conn_vars, BinaryInput* header, BinaryInput* body);
 
 			public:
 				Router() : pieces(0), current_batch(1000), router_state(OFFLINE) {

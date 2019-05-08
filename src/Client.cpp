@@ -39,16 +39,15 @@ namespace DistributedRenderer{
 
     // checks the network once and handles all available messages
     // wrap in a loop to repeatedly poll the network
-    void Client::checkNetwork(){
+    bool Client::checkNetwork(){
 
         NetMessageIterator& iter = connection->incomingMessageIterator();
 
-        if(!iter.isValid()) return;
+        if(!iter.isValid()) return false;
 
         try{
 
             BinaryInput& header = iter.headerBinaryInput();
-            header.beginBits();
             uint32 batch_id = header.readUInt32();
 
 			shared_ptr<Image> frame;
@@ -69,20 +68,11 @@ namespace DistributedRenderer{
                     debugPrintf("Client received incompatible packet type\n");
                     break;   
             } // end switch
-
-            header.endBits();
-
         } catch(...) {
             // handle error
         }
 
         ++iter;
-    }
-
-    // Use this method to mark an entity to be updated on the network
-    void Client::setEntityChanged(shared_ptr<Entity> e){
-        // safety check
-        changed_entities.insert(getEntityIDByName(e->name()));
     }
 
 	// send an update on the network with a batch ID
@@ -96,17 +86,15 @@ namespace DistributedRenderer{
         // serialize 
 		BinaryOutput* batch = BinaryUtils::create();
 
-        // this currently loops through every entity
-        // this is inefficient and should be improved such that we only iterate through a 
-        // set of ids that were changed
-        int id = 0;
-        for (Array<shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ++it){
-            shared_ptr<Entity> ent = *it;
+        for (int i = 0; i < entities.size(); i++){
+            shared_ptr<Entity> ent = entities[i];
+
+            if(ent->lastChangeTime() < last_update) continue;
 
             float x,y,z,yaw,pitch,roll;
             ent->frame().getXYZYPRRadians(x,y,z,yaw,pitch,roll);
 
-            batch->writeUInt32(id++);
+            batch->writeUInt32(i);
 			batch->writeFloat32(x);
 			batch->writeFloat32(y);
 			batch->writeFloat32(z);
@@ -116,9 +104,10 @@ namespace DistributedRenderer{
         }
 
         // net message send batch to router ip
-        send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
+        if(batch->length() > 0){
+            send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
+            last_update = System::time();
+        }
 
-        // clear recently used
-        // changed_entities.erase();
     }
 }

@@ -115,7 +115,10 @@ namespace DistributedRenderer {
 				BinaryOutput* bo = BinaryUtils::create();
 
 				// copy all bytes
-				while (in->hasMore()) bo->writeInt8(in->readInt8());
+                const uint8* buffer = in->getCArray();
+                for (int i = 0; i < in->getLength(); i++) {
+                    bo->writeUInt8(buffer[i]);
+                }
 				
                 return bo;
             }
@@ -155,7 +158,7 @@ namespace DistributedRenderer {
             // which should be the same over all instances of the application 
             // then at runtime, transforms will be synced across the network
             // before rendering a frame
-            Array<shared_ptr<Entity>> entities;
+            vector<shared_ptr<Entity>> entities;
             map<String, uint32> entity_index_by_name;
 
             shared_ptr<NetConnection> connection; 
@@ -186,6 +189,8 @@ namespace DistributedRenderer {
                 return false;
             }
 
+            void disconnect() {send(PacketType::TERMINATE);}
+
             bool isTypeOf(NodeType t){ return t == type; }
 
             bool isConnected() { 
@@ -198,10 +203,14 @@ namespace DistributedRenderer {
             // register all entities to be tracked by the network 
             // currently, this does not support adding or removing entities
             void trackEntities(Array<shared_ptr<Entity>>* e) {
-                entities = *e;
                 // make an ID lookup for tracking
-                for(int i = 0; i < entities.size(); i++){
-                    entity_index_by_name[entities[i]->name()] = i;
+                int index = 0;
+                for(int i = 0; i < e->size(); i++){
+                    shared_ptr<Entity> ent = (*e)[i];
+                    if(ent->canChange()){
+                        entities.push_back(ent);
+                        entity_index_by_name[ent->name()] = index++;
+                    }
                 }
             }
 
@@ -220,7 +229,7 @@ namespace DistributedRenderer {
             uint32 current_batch_id = 0; 
             float ms_to_deadline = 0;
 
-            set<unsigned int> changed_entities;
+            RealTime last_update = 0;
 
             // frame cache
 
@@ -229,10 +238,9 @@ namespace DistributedRenderer {
         public:
             Client(RApp* app);
             
-            void setEntityChanged(shared_ptr<Entity> e);
             void sendUpdate();
 
-            void checkNetwork();
+            bool checkNetwork();
 
     };
 
@@ -240,10 +248,10 @@ namespace DistributedRenderer {
         protected:
             Rect2D bounds; 
             
-            void sync(BinaryInput& update);
+            void sync(BinaryInput* update);
             void sendFrame(uint32 batch_id);
 
-            void setClip(BinaryInput& bi);
+            void setClip(BinaryInput* bi);
             void setClip(uint32 y, uint32 height);
             
             void onConnect() override;
@@ -268,7 +276,8 @@ namespace DistributedRenderer {
             RApp(const GApp::Settings& settings, NodeType type = REMOTE);
 
             virtual void onInit() override;
-
+		
+			int run();
             void onRun();
             void oneFrame();
             virtual void oneFrameAdHoc(); 

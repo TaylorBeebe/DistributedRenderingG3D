@@ -3,7 +3,6 @@
 */
 
 #include "DistributedRenderer.h"
-//#include <time.h>
 #include <mutex>
 
 static const float BACKGROUND_FRAME_RATE = 4.0;
@@ -21,6 +20,58 @@ namespace DistributedRenderer {
 
 	void DistributedRenderer::RApp::onInit(){
 		GApp::onInit();
+	}
+
+	int RApp::run() {
+		int ret = 0;
+		if (catchCommonExceptions) {
+			try {
+				onRun();
+				ret = m_exitCode;
+			}
+			catch (const char* e) {
+				alwaysAssertM(false, e);
+				ret = -1;
+			}
+			catch (const Image::Error& e) {
+				alwaysAssertM(false, e.reason + "\n" + e.filename);
+				ret = -1;
+			}
+			catch (const String& s) {
+				alwaysAssertM(false, s);
+				ret = -1;
+			}
+			catch (const TextInput::WrongTokenType& t) {
+				alwaysAssertM(false, t.message);
+				ret = -1;
+			}
+			catch (const TextInput::WrongSymbol& t) {
+				alwaysAssertM(false, t.message);
+				ret = -1;
+			}
+			catch (const LightweightConduit::PacketSizeException& e) {
+				alwaysAssertM(false, e.message);
+				ret = -1;
+			}
+			catch (const ParseError& e) {
+				alwaysAssertM(false, e.formatFileInfo() + e.message);
+				ret = -1;
+			}
+			catch (const FileNotFound& e) {
+				alwaysAssertM(false, e.message);
+				ret = -1;
+			}
+			catch (const std::exception& e) {
+				alwaysAssertM(false, e.what());
+				ret = -1;
+			}
+		}
+		else {
+			onRun();
+			ret = m_exitCode;
+		}
+
+		return ret;
 	}
 
 	// run is the next thing after the constructor finishes
@@ -45,7 +96,7 @@ namespace DistributedRenderer {
 			}
 
 			// initialize the connection and wait for the ready
-			//network_node->init_connection(Constants::ROUTER_ADDR);
+			network_node->init_connection(Constants::ROUTER_ADDR);
 
 			if (network_node->isTypeOf(NodeType::CLIENT)) {
 				// Main loop
@@ -56,13 +107,9 @@ namespace DistributedRenderer {
 			else {
 				// Busy wait for a message then do a render
 				// This can be improved in the future (and should be) by making the thread sleep
+				Remote* remote = (Remote*) network_node;
 				do {
-
-
-					//WARNING: This is downcasting. Check with Michael to see if there's a better way to go about this.
-					((Remote*) network_node)->receive();
-
-
+					remote->receive();
 				} while (!m_endProgram);
 			}
 
@@ -70,13 +117,8 @@ namespace DistributedRenderer {
 		}
 	}
 
-	// Similar to oneFrame, this method will call overridden app methods for pose
-	// and graphics. This method will only be called by a remote node when it receives
-	// network updates that request a render
-	//
-	// the call to onGraphics will trigger whatever the developer specified in
-	// onGraphics2D and onGraphics3D. If a remote is in headless mode, draw requests
-	// will be ignored on the render device
+	// Similar to oneFrame, this method will call app methods for pose and graphics. 
+	// This method will only be called by a remote node when it receives network updates
 	void RApp::oneFrameAdHoc() {
 
 		// Pose
@@ -194,7 +236,7 @@ namespace DistributedRenderer {
 				onSimulation(rdt, sdt, idt);
 				onAfterSimulation(rdt, sdt, idt);
 
-				// no way to overwrite the base class private fields :(
+				// no way to overwrite the base class private fields
 				// m_previousSimTimeStep = float(sdt);
 				// m_previousRealTimeStep = float(rdt);
 				setRealTime(realTime() + rdt);
@@ -204,95 +246,102 @@ namespace DistributedRenderer {
 			//END_PROFILER_EVENT();
 		}
 
-		//Client* client = (Client*) network_node;
+		Client* client = (Client*) network_node;
 		// after the simulation period, we will wait until our sands are run
-		//RealTime deadline = timeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
+		//RealTime deadline = someTimeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
 
 		// send the update
-		//client->sendUpdate();
+		client->sendUpdate();
 
-		//while (timeStep <= deadline) client->checkNetwork();
+		bool frame_arrived = false;
+		// while (!frame_arrived && timeStep <= deadline) frame_arrived = client->checkNetwork();
 
-		// Pose
-		//BEGIN_PROFILER_EVENT("Pose");
-		m_poseWatch.tick(); {
-			m_posed3D.fastClear();
-			m_posed2D.fastClear();
-			onPose(m_posed3D, m_posed2D);
+		if (frame_arrived) {
+			// display network frame
+		}else{
 
-			// The debug camera is not in the scene, so we have
-			// to explicitly pose it. This actually does nothing, but
-			// it allows us to trigger the TAA code.
-			m_debugCamera->onPose(m_posed3D);
-		} m_poseWatch.tock();
-		//END_PROFILER_EVENT();
+			// Pose
+			//BEGIN_PROFILER_EVENT("Pose");
+			m_poseWatch.tick(); {
+				m_posed3D.fastClear();
+				m_posed2D.fastClear();
+				onPose(m_posed3D, m_posed2D);
 
-		// Wait
-		// Note: we might end up spending all of our time inside of
-		// RenderDevice::beginFrame.  Waiting here isn't double waiting,
-		// though, because while we're sleeping the CPU the GPU is working
-		// to catch up.
-		//BEGIN_PROFILER_EVENT("Wait");
-		m_waitWatch.tick(); {
-			RealTime nowAfterLoop = System::time();
+				// The debug camera is not in the scene, so we have
+				// to explicitly pose it. This actually does nothing, but
+				// it allows us to trigger the TAA code.
+				m_debugCamera->onPose(m_posed3D);
+			} m_poseWatch.tock();
+			//END_PROFILER_EVENT();
 
-			// Compute accumulated time
-			RealTime cumulativeTime = nowAfterLoop - r_lastWaitTime;
+			// Wait
+			// Note: we might end up spending all of our time inside of
+			// RenderDevice::beginFrame.  Waiting here isn't double waiting,
+			// though, because while we're sleeping the CPU the GPU is working
+			// to catch up.
+			//BEGIN_PROFILER_EVENT("Wait");
+			m_waitWatch.tick(); {
+				RealTime nowAfterLoop = System::time();
 
-			//debugAssert(m_wallClockTargetDuration < finf());
-			// Perform wait for actual time needed
-			RealTime duration = realTimeTargetDuration();
-			if (!window()->hasFocus() && lowerFrameRateInBackground()) {
-				// Lower frame rate
-				duration = 1.0 / BACKGROUND_FRAME_RATE;
+				// Compute accumulated time
+				RealTime cumulativeTime = nowAfterLoop - r_lastWaitTime;
+
+				//debugAssert(m_wallClockTargetDuration < finf());
+				// Perform wait for actual time needed
+				RealTime duration = realTimeTargetDuration();
+				if (!window()->hasFocus() && lowerFrameRateInBackground()) {
+					// Lower frame rate
+					duration = 1.0 / BACKGROUND_FRAME_RATE;
+				}
+				RealTime desiredWaitTime = std::max(0.0, duration - cumulativeTime);
+				onWait(std::max(0.0, desiredWaitTime - m_lastFrameOverWait) * 0.97);
+
+				// Update wait timers
+				r_lastWaitTime = System::time();
+				RealTime actualWaitTime = r_lastWaitTime - nowAfterLoop;
+
+				// Learn how much onWait appears to overshoot by and compensate
+				double thisOverWait = actualWaitTime - desiredWaitTime;
+				if (std::abs(thisOverWait - m_lastFrameOverWait) / std::max(std::abs(m_lastFrameOverWait), std::abs(thisOverWait)) > 0.4) {
+					// Abruptly change our estimate
+					m_lastFrameOverWait = thisOverWait;
+				}
+				else {
+					// Smoothly change our estimate
+					m_lastFrameOverWait = lerp(m_lastFrameOverWait, thisOverWait, 0.1);
+				}
+			}  m_waitWatch.tock();
+			//END_PROFILER_EVENT();
+
+			// Graphics
+			//debugAssertGLOk();
+			if ((submitToDisplayMode() == SubmitToDisplayMode::BALANCE) && (!renderDevice->swapBuffersAutomatically())) {
+				swapBuffers();
 			}
-			RealTime desiredWaitTime = std::max(0.0, duration - cumulativeTime);
-			onWait(std::max(0.0, desiredWaitTime - m_lastFrameOverWait) * 0.97);
 
-			// Update wait timers
-			r_lastWaitTime = System::time();
-			RealTime actualWaitTime = r_lastWaitTime - nowAfterLoop;
-
-			// Learn how much onWait appears to overshoot by and compensate
-			double thisOverWait = actualWaitTime - desiredWaitTime;
-			if (std::abs(thisOverWait - m_lastFrameOverWait) / std::max(std::abs(m_lastFrameOverWait), std::abs(thisOverWait)) > 0.4) {
-				// Abruptly change our estimate
-				m_lastFrameOverWait = thisOverWait;
+			if (notNull(m_gazeTracker)) {
+				//BEGIN_PROFILER_EVENT("Gaze Tracker");
+				sampleGazeTrackerData();
+				//END_PROFILER_EVENT();
 			}
-			else {
-				// Smoothly change our estimate
-				m_lastFrameOverWait = lerp(m_lastFrameOverWait, thisOverWait, 0.1);
+
+			//BEGIN_PROFILER_EVENT("Graphics");
+			renderDevice->beginFrame();
+			m_widgetManager->onBeforeGraphics();
+			m_graphicsWatch.tick(); {
+				//debugAssertGLOk();
+				renderDevice->pushState(); {
+					//debugAssertGLOk();
+					onGraphics(renderDevice, m_posed3D, m_posed2D);
+				} renderDevice->popState();
+			}  m_graphicsWatch.tock();
+			renderDevice->endFrame();
+			if ((submitToDisplayMode() == SubmitToDisplayMode::MINIMIZE_LATENCY) && (!renderDevice->swapBuffersAutomatically())) {
+				swapBuffers();
 			}
-		}  m_waitWatch.tock();
-		//END_PROFILER_EVENT();
-
-		// Graphics
-		//debugAssertGLOk();
-		if ((submitToDisplayMode() == SubmitToDisplayMode::BALANCE) && (!renderDevice->swapBuffersAutomatically())) {
-			swapBuffers();
-		}
-
-		if (notNull(m_gazeTracker)) {
-			//BEGIN_PROFILER_EVENT("Gaze Tracker");
-			sampleGazeTrackerData();
 			//END_PROFILER_EVENT();
 		}
-
-		//BEGIN_PROFILER_EVENT("Graphics");
-		renderDevice->beginFrame();
-		m_widgetManager->onBeforeGraphics();
-		m_graphicsWatch.tick(); {
-			//debugAssertGLOk();
-			renderDevice->pushState(); {
-				//debugAssertGLOk();
-				onGraphics(renderDevice, m_posed3D, m_posed2D);
-			} renderDevice->popState();
-		}  m_graphicsWatch.tock();
-		renderDevice->endFrame();
-		if ((submitToDisplayMode() == SubmitToDisplayMode::MINIMIZE_LATENCY) && (!renderDevice->swapBuffersAutomatically())) {
-			swapBuffers();
-		}
-		//END_PROFILER_EVENT();
+		
 
 		// Remove all expired debug shapes
 		for (int i = 0; i < debugShapeArray.size(); ++i) {
@@ -349,8 +398,8 @@ namespace DistributedRenderer {
 	{
 	}
 
-	void RApp::endProgram()
-	{
+	void RApp::endProgram(){
+		network_node->disconnect();
 	}
 
 }
