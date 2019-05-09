@@ -10,7 +10,7 @@ static const float BACKGROUND_FRAME_RATE = 4.0;
 namespace DistributedRenderer {
 
 	RApp::RApp(const GApp::Settings& settings, NodeType type) : 
-		GApp(settings, nulltpr, RenderDeviceDist::create(settings), true), 
+		GApp(settings, nullptr, RenderDeviceDist::create(settings), true), 
 		r_lastWaitTime(System::time()) 
 	{
 		// create node
