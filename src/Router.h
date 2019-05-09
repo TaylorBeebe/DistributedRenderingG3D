@@ -1,5 +1,7 @@
 #include <G3D/G3D.h>
 #include "DistributedRenderer.h"
+#include "ImageDist.h"
+#include "TextureDist.h"
 
 using namespace std;
 using namespace DistributedRenderer;
@@ -76,6 +78,7 @@ namespace DistributedRenderer{
 		    uint32 id;
 		    uint32 y;
 		    uint32 h;
+		    int frag_loc;
 		    shared_ptr<NetConnection> connection;
 		} remote_connection_t;
 
@@ -88,7 +91,7 @@ namespace DistributedRenderer{
 
 				uint32 current_batch;
 				uint32 pieces;
-				// -- some pixel buffer
+				Array<shared_ptr<ImageDist>> fragments;
 
 				// this registry will track remote connections, addressable with IP addresses
 				map<uint32, remote_connection_t*> remote_connection_registry;

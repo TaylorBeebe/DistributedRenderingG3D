@@ -34,6 +34,7 @@ namespace Router{
         // defaults
         cv->y = 0;
         cv->h = 0;
+        cv->frag_loc = 0;
 
     	cv->connection = conn;
     	remote_connection_registry[id] = cv;
@@ -74,19 +75,24 @@ namespace Router{
         if (batch_id != current_batch) return;
 
         // attach fragment to buffer
+        framents[conn_vars->frag_loc] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8())
+
+        cout << "Received fragment from " << conn_vars->id << endl;
 
         // check if finished
         if (++pieces == numRemotes()){
             cout << "Sending frame no. " << batch_id << " to client" << endl;
+            
+            shared_ptr<ImageDist> frame = TextureDist::CombineImages(fragments);
 
             // send a new frame packet to the client
-            // BinaryOutput& data = BinaryUtils::empty();
+            BinaryOutput* header = BinaryUtils::toBinaryOutput(current_batch);
+            BinaryOutput* bo = BinaryUtils::create();
 
-            //Image frame;
-            // ... 
-            //frame.serialize(data, Image::PNG);
+            // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
+            frame->serialize(*bo, Image::PNG);
 
-            //send(PacketType::FRAME, data, BinaryUtils::toBinaryOutput(batch_id), 0);
+            send(PacketType::FRAME, client, header, bo);
         } 
     }
 
@@ -173,6 +179,7 @@ namespace Router{
         // to one of the nodes
         uint32 frag_height = Constants::SCREEN_HEIGHT / numRemotes(); 
         uint32 curr_y = 0;
+        int frag = 0; 
 
         map<uint32, remote_connection_t*>::iterator iter;
         for(iter = remote_connection_registry.begin(); iter != remote_connection_registry.end(); iter++){ 
@@ -191,12 +198,14 @@ namespace Router{
             // store internal record
             cv->y = curr_y;
             cv->h = frag_height;
+            cv->frag_loc = frag++;
 
             curr_y += frag_height;
         }
 
         int configurations = 0;
         map<uint32, remote_connection_t*>::iterator remotes;
+        fragments.resize(numRemotes(), true);
 
         while(router_state != TERMINATED){
             for(remotes = remote_connection_registry.begin(); remotes != remote_connection_registry.end(); remotes++){
