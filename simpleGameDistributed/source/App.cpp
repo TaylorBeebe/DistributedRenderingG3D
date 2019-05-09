@@ -50,7 +50,6 @@ void App::onInit() {
     makeGUI();
 
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
-	//m_finalFramebuffer = Framebuffer::create(Texture::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 	loadScene("Level");
     setActiveCamera(m_scene->typedEntity<Camera>("camera"));
     developerWindow->sceneEditorWindow->setPreventEntitySelect(true);
@@ -78,54 +77,6 @@ void App::onAI() {
 void App::onNetwork() {
     RApp::onNetwork();
     // Poll net messages here
-}
-
-static void sendImage(const shared_ptr<Image>& image, const Array<shared_ptr<WebServer::WebSocket>>& socketArray, Image::ImageFileFormat ff) {
-	static const int IMAGE = 1;
-	BinaryOutput bo("<memory>", G3D_BIG_ENDIAN);
-
-	alwaysAssertM((ff == Image::PNG) || (ff == Image::JPEG), "Only PNG and JPEG are supported right now");
-	const char* mimeType = (ff == Image::PNG) ? "image/png" : "image/jpeg";
-	const String& msg =
-		format("{\"type\":%d,\"width\":%d,\"height\":%d,\"mimeType\":\"%s\"}", IMAGE, image->width(), image->height(), mimeType);
-
-	// JSON header length (in network byte order)
-	bo.writeInt32((int32)msg.length());
-
-	// JSON header
-	bo.writeString(msg, (int32)msg.length());
-
-	// Binary data
-	image->serialize(bo, ff);
-
-	// Send to all children
-	for (const shared_ptr<WebServer::WebSocket>& socket : socketArray) {
-		const size_t bytes = socket->send(bo);
-		(void)bytes;
-		// debugPrintf("Sent %d bytes\n", (unsigned int)bytes);
-	}
-}
-
-
-void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
-	// Perform gamma correction, bloom, and SSAA, and write to the native window frame buffer
-	rd->pushState(m_finalFramebuffer); {
-		GApp::onGraphics3D(rd, allSurfaces);
-	} rd->popState();
-
-	// Copy the final buffer to the server screen
-	//rd->push2D(); {
-	//	Draw::rect2D(m_finalFramebuffer->texture(0)->rect2DBounds(), rd, Color3::white(), m_finalFramebuffer->texture(0));
-	//} rd->pop2D();
-
-	//if (clientWantsImage.load() != 0) {
-	//	Array<shared_ptr<WebServer::WebSocket>> array;
-	//	m_webServer->getWebSocketArray(socketUri, array);
-
-	//	// JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
-	//	sendImage(m_finalFramebuffer->texture(0)->toImage(ImageFormat::RGB8()), array, Image::JPEG);
-	//	clientWantsImage = 0;
-	//}
 }
 
 
