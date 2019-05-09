@@ -480,6 +480,12 @@ namespace DistributedRenderer {
 
 		}
 
+		static shared_ptr<TextureDist> fromTexture(shared_ptr<Texture> t, const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) {
+			
+			return fromPixelTransferBuffer("remote_buffer", t->toPixelTransferBuffer());
+
+		}
+
 		shared_ptr<ImageDist> toImage5(Rect2D rec = Rect2D::xyxy(0, 0, 0, 0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
 			shared_ptr<ImageDist> i = ImageDist::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
 			shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
