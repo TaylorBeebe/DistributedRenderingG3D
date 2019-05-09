@@ -120,10 +120,18 @@ namespace DistributedRenderer{
 
         cout << "Sending fragment of frame " << batch_id << " to router" << endl;
 
-        // maybe spawn a new thread to do it async and if another packet comes in stop
-        // that thread and spawn a new one
+        BinaryOutput* bo = BinaryUtils::create();
+        BinaryOutput* header = BinaryUtils::toBinaryOutput(batch_id);
 
-        // store it in packet and send it
-        // send(PacketType::FRAGMENT);
+        shared_ptr<FrameBuffer> buffer = the_app->finalFrameBuffer();
+        Draw::rect2D(buffer->texture(0)->rect2DBounds(), rd, Color3::white(), buffer->texture(0));
+
+        shared_ptr<Image> frame = buffer->texture(0)->toImage(ImageFormat::RGB8());
+        frame->serialize(bo, Image::PNG);
+
+        // send(PacketType::FRAGMENT, header, bo);
+
+        delete bo; 
+        delete header;
     }
 }

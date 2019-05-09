@@ -56,16 +56,14 @@ namespace DistributedRenderer{
                 case PacketType::FRAME:
 
 					frame = Image::fromBinaryInput(iter.binaryInput(), ImageFormat::RGB8());
-
-                    // cache in frame buffer
-
-                    break;
+                    // convert to texture and toggle flag
+                    cout << "Received frame!" << endl;
+                    return true;
                 case PacketType::TERMINATE:
                     // clean up
-                    // delete connection
                     break;
                 default: // Client does not need this datatype
-                    debugPrintf("Client received incompatible packet type\n");
+                    cout << "Client received incompatible packet type " << iter.type() << endl;
                     break;   
             } // end switch
         } catch(...) {
@@ -79,9 +77,6 @@ namespace DistributedRenderer{
 	// the processed batch frame will need to return by the next deadline
 	// or else the client will use a low qual render instead
     void Client::sendUpdate(){
-
-        // new batch id
-        current_batch_id++;
 
         // serialize 
 		BinaryOutput* batch = BinaryUtils::create();
@@ -105,7 +100,7 @@ namespace DistributedRenderer{
 
         // net message send batch to router ip
         if(batch->length() > 0){
-            send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id), *batch);
+            send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id++), *batch);
             last_update = System::time();
         }
 

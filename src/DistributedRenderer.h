@@ -259,7 +259,7 @@ namespace DistributedRenderer {
         public:
             Remote(RApp* app, bool headless_mode);
             void receive();
-            Rect2D getBounds() { return bounds; }
+            Rect2D getClip() { return bounds; }
     };
 
     class RApp : public GApp {
@@ -267,7 +267,9 @@ namespace DistributedRenderer {
         private:
 			
             /** Used by onWait for elapsed time. */
-            RealTime               r_lastWaitTime;
+            RealTime                    r_lastWaitTime;
+
+            shared_ptr<FrameBuffer>     m_finalFrameBuffer;
 
         protected:
             NetworkNode* network_node;
@@ -275,18 +277,52 @@ namespace DistributedRenderer {
         public:
             RApp(const GApp::Settings& settings, NodeType type = REMOTE);
 
+            shared_ptr<FrameBuffer> finalFrameBuffer(){
+                return m_finalFrameBuffer;
+            }
+
             virtual void onInit() override;
 		
 			int run();
             void onRun();
             void oneFrame();
-            virtual void oneFrameAdHoc(); 
+            void oneFrameAdHoc(); 
             void onGraphics(RenderDevice* rd, Array<shared_ptr<Surface> >& surface, Array<shared_ptr<Surface2D> >& surface2D) override;
+            // void onGraphics3D() override;
 
             virtual void onCleanup() override;
 
             /** Sets m_endProgram to true. */
-            void endProgram();
+            virtual void endProgram();
+    };
+
+    class RenderDeviceDist : public RenderDevice {
+        protected:
+
+            Rect2D bounds;
+
+        public:
+
+            static RenderDeviceDist* create(const Settings& settings) {
+                RenderDeviceDist* rd = new RenderDeviceDist();
+                rd->init(settings.window);
+                return (RenderDevice*) rd;
+            }
+
+            void setClipping(Rect2D _bounds) {
+                bounds = _bounds;
+            }
+
+            void pushState(const shared_ptr<Framebuffer>& fb) {
+                
+                RenderDevice::pushState();
+
+                if (fb) {
+                    setFramebuffer(fb);
+                    setClip2D(bounds);
+                    setViewport(fb->rect2DBounds());
+                }
+            }
     };
 
 }

@@ -9,10 +9,10 @@ static const float BACKGROUND_FRAME_RATE = 4.0;
 
 namespace DistributedRenderer {
 
-	RApp::RApp(const GApp::Settings& settings, NodeType type) : GApp(settings, nullptr, nullptr, true), r_lastWaitTime(System::time()) {
-
-		// TODO: include custom renderdevice and window and initialize them here
-
+	RApp::RApp(const GApp::Settings& settings, NodeType type) : 
+		GApp(settings, RenderDeviceDist::create(settings), nullptr, true), 
+		r_lastWaitTime(System::time()) 
+	{
 		// create node
 		if (type == NodeType::CLIENT) network_node = new Client(this);
 		else network_node = new Remote(this, true);
@@ -20,6 +20,8 @@ namespace DistributedRenderer {
 
 	void DistributedRenderer::RApp::onInit(){
 		GApp::onInit();
+
+		m_finalFrameBuffer = Framebuffer::create(Texture::createEmpty("RApp::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 	}
 
 	int RApp::run() {
@@ -105,9 +107,12 @@ namespace DistributedRenderer {
 				} while (!m_endProgram);
 			}
 			else {
-				// Busy wait for a message then do a render
-				// This can be improved in the future (and should be) by making the thread sleep
+				
 				Remote* remote = (Remote*) network_node;
+				// set the clipping
+				dynamic_pointer_cast<RenderDeviceDist>(renderDevice)->setClipping(remote->getClip());
+
+				// Busy wait for a message then do a render
 				do {
 					remote->receive();
 				} while (!m_endProgram);
@@ -117,8 +122,8 @@ namespace DistributedRenderer {
 		}
 	}
 
-	// Similar to oneFrame, this method will call app methods for pose and graphics. 
-	// This method will only be called by a remote node when it receives network updates
+	// Similar to oneFrame, this method will call onPose nad onGraphics but will not listen for any
+	// user input or do any logic or simulation. Only called by a remote node when it receives network updates
 	void RApp::oneFrameAdHoc() {
 
 		// Pose
@@ -254,10 +259,10 @@ namespace DistributedRenderer {
 		client->sendUpdate();
 
 		bool frame_arrived = false;
-		// while (!frame_arrived && timeStep <= deadline) frame_arrived = client->checkNetwork();
+		// while (!frame_arrived) frame_arrived = client->checkNetwork();
 
 		if (frame_arrived) {
-			// display network frame
+			// display network frame by writing net buffer into native window buffer
 		}else{
 
 			// Pose
@@ -394,8 +399,64 @@ namespace DistributedRenderer {
 		}
 	}
 
-	void RApp::onCleanup()
-	{
+	// void RApp::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
+	//     if (!scene()) {
+	//         if ((submitToDisplayMode() == SubmitToDisplayMode::MAXIMIZE_THROUGHPUT) && (! rd->swapBuffersAutomatically())) {
+	//             swapBuffers();
+	//         }
+	//         rd->clear();
+	//         rd->pushState(); {
+	//             rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
+	//             drawDebugShapes();
+	//         } rd->popState();
+	//         return;
+	//     }
+
+	//     BEGIN_PROFILER_EVENT("GApp::onGraphics3D");
+	//     GBuffer::Specification gbufferSpec = m_gbufferSpecification;
+	//     extendGBufferSpecification(gbufferSpec);
+	//     m_gbuffer->setSpecification(gbufferSpec);
+
+	//     const Vector2int32 framebufferSize = m_settings.hdrFramebuffer.hdrFramebufferSizeFromDeviceSize(Vector2int32(m_deviceFramebuffer->vector2Bounds()));
+	//     m_framebuffer->resize(framebufferSize);
+	//     m_gbuffer->resize(framebufferSize);
+	//     m_gbuffer->prepare(rd, activeCamera(), 0, -(float)previousSimTimeStep(), m_settings.hdrFramebuffer.depthGuardBandThickness, m_settings.hdrFramebuffer.colorGuardBandThickness);
+
+	//     m_renderer->render(rd, activeCamera(), m_framebuffer, scene()->lightingEnvironment().ambientOcclusionSettings.enabled ? m_depthPeelFramebuffer : nullptr, 
+	//         scene()->lightingEnvironment(), m_gbuffer, allSurfaces);
+
+	//     // Debug visualizations and post-process effects
+	//     rd->pushState(m_framebuffer); {
+	//         // Call to make the App show the output of debugDraw(...)
+	//         rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
+	//         drawDebugShapes();
+	//         const shared_ptr<Entity>& selectedEntity = (notNull(developerWindow) && notNull(developerWindow->sceneEditorWindow)) ? developerWindow->sceneEditorWindow->selectedEntity() : nullptr;
+	//         scene()->visualize(rd, selectedEntity, allSurfaces, sceneVisualizationSettings(), activeCamera());
+
+	//         onPostProcessHDR3DEffects(rd);
+	//     } rd->popState();
+
+	//     // We're about to render to the actual back buffer, so swap the buffers now.
+	//     // This call also allows the screenshot and video recording to capture the
+	//     // previous frame just before it is displayed.
+	//     if (submitToDisplayMode() == SubmitToDisplayMode::MAXIMIZE_THROUGHPUT) {
+	//         swapBuffers();
+	//     }
+
+	//     // Clear the entire screen (needed even though we'll render over it, since
+	//     // AFR uses clear() to detect that the buffer is not re-used.)
+	//     BEGIN_PROFILER_EVENT("RenderDevice::clear");
+	//     rd->clear();
+	//     END_PROFILER_EVENT();
+
+	//     // Perform gamma correction, bloom, and SSAA, and write to the native window frame buffer
+	//     m_film->exposeAndRender(rd, activeCamera()->filmSettings(), m_framebuffer->texture(0), settings().hdrFramebuffer.colorGuardBandThickness.x + settings().hdrFramebuffer.depthGuardBandThickness.x, settings().hdrFramebuffer.depthGuardBandThickness.x, 
+	//         Texture::opaqueBlackIfNull(notNull(m_gbuffer) ? m_gbuffer->texture(GBuffer::Field::SS_POSITION_CHANGE) : nullptr),
+	//         activeCamera()->jitterMotion());
+	//     END_PROFILER_EVENT();
+	// }
+
+	void RApp::onCleanup(){
 	}
 
 	void RApp::endProgram(){
