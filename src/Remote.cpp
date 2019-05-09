@@ -1,4 +1,5 @@
 #include "DistributedRenderer.h"
+#include "FramebufferDist.h"
 
 using namespace DistributedRenderer;
 
@@ -123,15 +124,16 @@ namespace DistributedRenderer{
         BinaryOutput* bo = BinaryUtils::create();
         BinaryOutput* header = BinaryUtils::toBinaryOutput(batch_id);
 
-        shared_ptr<Framebuffer> buffer = the_app->finalFrameBuffer();
+        shared_ptr<FramebufferDist> buffer = the_app->finalFrameBuffer();
         Draw::rect2D(buffer->texture(0)->rect2DBounds(), the_app->renderDevice, Color3::white(), buffer->texture(0));
 		
-		// 
+		shared_ptr<TextureDist> td = dynamic_pointer_cast<TextureDist>(buffer->texture(0));
 
-        shared_ptr<Image> frame = buffer->texture(0)->toImage(ImageFormat::RGB8());
+		shared_ptr<ImageDist> frame = td->toImage5(bounds, ImageFormat::RGB8());
+
         frame->serialize(*bo, Image::PNG);
 
-        // send(PacketType::FRAGMENT, header, bo);
+        send(PacketType::FRAGMENT, *header, *bo);
 
         delete bo; 
         delete header;

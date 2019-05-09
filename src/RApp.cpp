@@ -3,6 +3,7 @@
 */
 
 #include "DistributedRenderer.h"
+#include "FramebufferDist.h"
 #include <mutex>
 
 static const float BACKGROUND_FRAME_RATE = 4.0;
@@ -154,7 +155,7 @@ namespace DistributedRenderer {
 				Remote* remote = (Remote*) network_node;
 				// set the clipping
 				((RenderDeviceDist*) renderDevice)->setClipping(remote->getClip());
-				m_finalFrameBuffer = Framebuffer::create(Texture::createEmpty("RApp::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
+				m_finalFrameBuffer = FramebufferDist::create(TextureDist::createEmpty("RApp::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 
 				// Busy wait for a message and let receive trigger a render
 				do {
