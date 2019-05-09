@@ -125,6 +125,8 @@ namespace DistributedRenderer{
 
         shared_ptr<Framebuffer> buffer = the_app->finalFrameBuffer();
         Draw::rect2D(buffer->texture(0)->rect2DBounds(), the_app->renderDevice, Color3::white(), buffer->texture(0));
+		
+		// 
 
         shared_ptr<Image> frame = buffer->texture(0)->toImage(ImageFormat::RGB8());
         frame->serialize(*bo, Image::PNG);
