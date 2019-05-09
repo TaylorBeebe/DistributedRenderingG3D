@@ -288,7 +288,7 @@ namespace DistributedRenderer {
             void oneFrame();
             void oneFrameAdHoc(); 
             void onGraphics(RenderDevice* rd, Array<shared_ptr<Surface> >& surface, Array<shared_ptr<Surface2D> >& surface2D) override;
-            // void onGraphics3D() override;
+            void onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& surface) override;
 
             virtual void onCleanup() override;
 
