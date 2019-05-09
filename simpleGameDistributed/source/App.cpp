@@ -13,7 +13,7 @@ int main(int argc, const char* argv[]) {
     settings.window.width       = 1280; 
     settings.window.height      = 720;
 
-	App(settings, NodeType::CLIENT).run();
+	App(settings, NodeType::REMOTE).run();
 }
 
 

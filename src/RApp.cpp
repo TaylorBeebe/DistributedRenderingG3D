@@ -7,10 +7,55 @@
 
 static const float BACKGROUND_FRAME_RATE = 4.0;
 
+
+
 namespace DistributedRenderer {
 
+	OSWindow* os_window = nullptr;
+	RenderDevice* render_device = nullptr;
+
+	static void createRenderDevice(const GApp::Settings& settings) {
+		render_device = RenderDeviceDist::create(settings);
+		os_window = render_device->window();
+	}
+
+	static OSWindow* getConstructorOSWindow(const GApp::Settings& settings, NodeType type) {
+
+		if (notNull(os_window)) {
+
+			return os_window;
+		}
+		else if (type == NodeType::CLIENT) {
+
+			return nullptr;
+
+		}
+		else {
+
+			createRenderDevice(settings);
+			return os_window;
+		}
+
+	}
+
+	static RenderDevice* getConstructorRenderDevice(const GApp::Settings& settings, NodeType type) {
+
+		if (type == NodeType::CLIENT) {
+
+			return nullptr;
+
+		}
+		else {
+
+			createRenderDevice(settings);
+			return render_device;
+		}
+
+	}
+
+	//OSWindow::create(settings.window)
 	RApp::RApp(const GApp::Settings& settings, NodeType type) : 
-		GApp(settings, nullptr, type == NodeType::CLIENT ? nullptr : RenderDeviceDist::create(settings), true), 
+		GApp(settings, getConstructorOSWindow(settings,type), getConstructorRenderDevice(settings,type), true), 
 		r_lastWaitTime(System::time()) 
 	{
 		// create node
