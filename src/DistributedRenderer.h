@@ -269,7 +269,7 @@ namespace DistributedRenderer {
             /** Used by onWait for elapsed time. */
             RealTime                    r_lastWaitTime;
 
-            shared_ptr<FrameBuffer>     m_finalFrameBuffer;
+            shared_ptr<Framebuffer>     m_finalFrameBuffer;
 
         protected:
             NetworkNode* network_node;
@@ -277,7 +277,7 @@ namespace DistributedRenderer {
         public:
             RApp(const GApp::Settings& settings, NodeType type = REMOTE);
 
-            shared_ptr<FrameBuffer> finalFrameBuffer(){
+            shared_ptr<Framebuffer> finalFrameBuffer(){
                 return m_finalFrameBuffer;
             }
 
@@ -303,7 +303,7 @@ namespace DistributedRenderer {
 
         public:
 
-            static RenderDeviceDist* create(const Settings& settings) {
+            static RenderDevice* create(const GApp::Settings& settings) {
                 RenderDeviceDist* rd = new RenderDeviceDist();
                 rd->init(settings.window);
                 return (RenderDevice*) rd;

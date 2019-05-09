@@ -10,7 +10,7 @@ static const float BACKGROUND_FRAME_RATE = 4.0;
 namespace DistributedRenderer {
 
 	RApp::RApp(const GApp::Settings& settings, NodeType type) : 
-		GApp(settings, RenderDeviceDist::create(settings), nullptr, true), 
+		GApp(settings, nulltpr, RenderDeviceDist::create(settings), true), 
 		r_lastWaitTime(System::time()) 
 	{
 		// create node
@@ -110,7 +110,7 @@ namespace DistributedRenderer {
 				
 				Remote* remote = (Remote*) network_node;
 				// set the clipping
-				dynamic_pointer_cast<RenderDeviceDist>(renderDevice)->setClipping(remote->getClip());
+				((RenderDeviceDist*) renderDevice)->setClipping(remote->getClip());
 
 				// Busy wait for a message then do a render
 				do {
