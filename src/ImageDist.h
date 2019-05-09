@@ -5,7 +5,7 @@
 #include "../../external/freeimage.lib/include/FreeImagePlus.h"
 
 
-namespace G3D {
+namespace DistributedRenderer {
 
 	class ImageDist : public Image {
 	
@@ -105,7 +105,7 @@ namespace G3D {
 			return imageFormat;
 		}
 
-		shared_ptr<ImageDist> fromBinaryInput(BinaryInput& bi, const ImageFormat* imageFormat) {
+		static shared_ptr<ImageDist> fromBinaryInput(BinaryInput& bi, const ImageFormat* imageFormat) {
 			const shared_ptr<ImageDist>& img = createShared<ImageDist>();
 
 			fipMemoryIO memoryIO(const_cast<uint8*>(bi.getCArray() + bi.getPosition()), static_cast<DWORD>(bi.getLength() - bi.getPosition()));

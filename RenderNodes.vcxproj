@@ -20,7 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DistributedRenderer.h" />
+    <ClInclude Include="src\ImageDist.h" />
     <ClInclude Include="src\Router.h" />
+    <ClInclude Include="src\TextureDist.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="impl\RouterDriver.cpp" />

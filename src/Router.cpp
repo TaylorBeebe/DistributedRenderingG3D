@@ -75,7 +75,7 @@ namespace Router{
         if (batch_id != current_batch) return;
 
         // attach fragment to buffer
-        framents[conn_vars->frag_loc] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8())
+		fragments[conn_vars->frag_loc] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8());
 
         cout << "Received fragment from " << conn_vars->id << endl;
 
