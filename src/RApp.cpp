@@ -10,7 +10,7 @@ static const float BACKGROUND_FRAME_RATE = 4.0;
 namespace DistributedRenderer {
 
 	RApp::RApp(const GApp::Settings& settings, NodeType type) : 
-		GApp(settings, nullptr, nullptr, true), 
+		GApp(settings, nullptr, type == NodeType::CLIENT ? nullptr : RenderDeviceDist::create(settings), true), 
 		r_lastWaitTime(System::time()) 
 	{
 		// create node
@@ -20,8 +20,6 @@ namespace DistributedRenderer {
 
 	void DistributedRenderer::RApp::onInit(){
 		GApp::onInit();
-
-		m_finalFrameBuffer = Framebuffer::create(Texture::createEmpty("RApp::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 	}
 
 	int RApp::run() {
@@ -111,8 +109,9 @@ namespace DistributedRenderer {
 				Remote* remote = (Remote*) network_node;
 				// set the clipping
 				((RenderDeviceDist*) renderDevice)->setClipping(remote->getClip());
+				m_finalFrameBuffer = Framebuffer::create(Texture::createEmpty("RApp::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 
-				// Busy wait for a message then do a render
+				// Busy wait for a message and let receive trigger a render
 				do {
 					remote->receive();
 				} while (!m_endProgram);

@@ -47,15 +47,6 @@ namespace Router{
 
 
 // =========================================
-//              Frame Managing
-// =========================================
-
-    void Router::flushPixelBuffer() {}
-
-    void Router::stitch(remote_connection_t* conn_vars, Image& fragment) {}
-
-
-// =========================================
 //              Packet Handling
 // =========================================
 
@@ -84,7 +75,6 @@ namespace Router{
         if (batch_id != current_batch) return;
 
         // attach fragment to buffer
-        // stitch();
 
         // check if finished
         if (++pieces == numRemotes()){
