@@ -57,7 +57,6 @@ namespace Router{
         cout << "Rerouting update packet no. " << current_batch << endl;
 
         // reset batch variables
-        flushPixelBuffer();
         pieces = 0;
 
         // route transform data to all remotes

@@ -98,8 +98,9 @@ namespace DistributedRenderer{
 				void addRemote(shared_ptr<NetConnection> conn);
 				void removeRemote(NetAddress& addr);
 
+				void setState(RouterState s) { router_state = s; }
+
 				// frame management
-				void stitch(remote_connection_t* conn_vars, Image& fragment);
 
 				// networking
 				void broadcast(PacketType t, BinaryOutput* header, BinaryOutput* body, bool include_client);
