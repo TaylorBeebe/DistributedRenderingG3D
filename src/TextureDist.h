@@ -438,7 +438,7 @@ namespace DistributedRenderer {
 			return buffer;
 		}
 
-		shared_ptr<TextureDist> fromPixelTransferBuffer(
+		static shared_ptr<TextureDist> fromPixelTransferBuffer(
 			const String& name,
 			const shared_ptr<PixelTransferBuffer>& ptb,
 			Encoding desiredEncoding = Encoding(),
@@ -468,7 +468,7 @@ namespace DistributedRenderer {
 			return t;
 		}
 
-		shared_ptr<TextureDist> fromImage(
+		static shared_ptr<TextureDist> fromImage(
 			const String& name,
 			const shared_ptr<Image>& image,
 			const ImageFormat* desiredFormat = ImageFormat::AUTO(),

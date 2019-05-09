@@ -50,7 +50,7 @@ void App::onInit() {
     makeGUI();
 
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
-	m_finalFramebuffer = Framebuffer::create(Texture::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
+	//m_finalFramebuffer = Framebuffer::create(Texture::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 	loadScene("Level");
     setActiveCamera(m_scene->typedEntity<Camera>("camera"));
     developerWindow->sceneEditorWindow->setPreventEntitySelect(true);

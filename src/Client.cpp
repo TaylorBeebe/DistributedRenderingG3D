@@ -1,4 +1,5 @@
 #include "DistributedRenderer.h"
+#include "FramebufferDist.h"
 
 using namespace std;
 using namespace G3D;
@@ -50,12 +51,14 @@ namespace DistributedRenderer{
             BinaryInput& header = iter.headerBinaryInput();
             uint32 batch_id = header.readUInt32();
 
-			shared_ptr<Image> frame;
+			shared_ptr<ImageDist> frame;
 
             switch(iter.type()){
                 case PacketType::FRAME:
 
-					frame = Image::fromBinaryInput(iter.binaryInput(), ImageFormat::RGB8());
+					frame = ImageDist::fromBinaryInput(iter.binaryInput(), ImageFormat::RGB8());
+					the_app->setFinalFrameBuffer(frame);
+
                     // convert to texture and toggle flag
                     cout << "Received frame!" << endl;
                     return true;

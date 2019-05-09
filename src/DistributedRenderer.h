@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include "FramebufferDist.h"
 
 using namespace G3D;
 using namespace std;
@@ -280,6 +281,11 @@ namespace DistributedRenderer {
             shared_ptr<FramebufferDist> finalFrameBuffer(){
                 return m_finalFrameBuffer;
             }
+
+			void setFinalFrameBuffer(shared_ptr<ImageDist> i) {
+				
+				m_finalFrameBuffer->setTexture0(TextureDist::fromImage("distributed_image", i));
+			}
 
             virtual void onInit() override;
 		
