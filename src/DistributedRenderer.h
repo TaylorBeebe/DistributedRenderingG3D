@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include "FramebufferDist.h"
 
 using namespace G3D;
 using namespace std;
