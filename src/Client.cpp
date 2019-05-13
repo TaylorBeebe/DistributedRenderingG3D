@@ -59,12 +59,17 @@ namespace DistributedRenderer{
 
 					frame = ImageDist::fromBinaryInput(iter.binaryInput(), ImageFormat::RGB8());
 
+				/*	if(current_batch_id %2 == 0)
+						frame->setAll(Color3::red());*/
+
 					buffer = FramebufferDist::create(TextureDist::fromImage("test", frame));
 
 					the_app->setFinalFrameBuffer(buffer);
 
                     // convert to texture and toggle flag
                     cout << "Received frame!" << endl;
+
+					++iter;
                     return true;
                 case PacketType::TERMINATE:
                     // clean up
