@@ -172,7 +172,7 @@ namespace DistributedRenderer {
 	void RApp::oneFrameAdHoc() {
 
 		// Pose
-		//BEGIN_PROFILER_EVENT("Pose");
+		BEGIN_PROFILER_EVENT("Pose");
 		m_poseWatch.tick(); {
 			m_posed3D.fastClear();
 			m_posed2D.fastClear();
@@ -183,21 +183,21 @@ namespace DistributedRenderer {
 			// it allows us to trigger the TAA code.
 			m_debugCamera->onPose(m_posed3D);
 		} m_poseWatch.tock();
-		//END_PROFILER_EVENT();
+		END_PROFILER_EVENT();
 
 		// Graphics
-		//debugAssertGLOk();
+		debugAssertGLOk();
 		if ((submitToDisplayMode() == SubmitToDisplayMode::BALANCE) && (!renderDevice->swapBuffersAutomatically())) {
 			swapBuffers();
 		}
 
-		//BEGIN_PROFILER_EVENT("Graphics");
+		BEGIN_PROFILER_EVENT("Graphics");
 		renderDevice->beginFrame();
 		// m_widgetManager->onBeforeGraphics();
 		m_graphicsWatch.tick(); {
-			//debugAssertGLOk();
+			debugAssertGLOk();
 			renderDevice->pushState(); {
-				//debugAssertGLOk();
+				debugAssertGLOk();
 				onGraphics(renderDevice, m_posed3D, m_posed2D);
 			} renderDevice->popState();
 		}  m_graphicsWatch.tock();
@@ -205,7 +205,7 @@ namespace DistributedRenderer {
 		if ((submitToDisplayMode() == SubmitToDisplayMode::MINIMIZE_LATENCY) && (!renderDevice->swapBuffersAutomatically())) {
 			swapBuffers();
 		}
-		//END_PROFILER_EVENT();
+		END_PROFILER_EVENT();
 
 		// Remove all expired debug shapes
 		for (int i = 0; i < debugShapeArray.size(); ++i) {
@@ -308,14 +308,14 @@ namespace DistributedRenderer {
 
 		if (frame_arrived) {
 			// display network frame by writing net buffer into native window buffer
-			renderDevice->push2D(); {
+			renderDevice->push2D(finalFrameBuffer()); {
 				Draw::rect2D(finalFrameBuffer()->texture(0)->rect2DBounds(), renderDevice, Color3::white(), finalFrameBuffer()->texture(0));
 			} renderDevice->pop2D();
 
 		}else{
 
 			// Pose
-			//BEGIN_PROFILER_EVENT("Pose");
+			BEGIN_PROFILER_EVENT("Pose");
 			m_poseWatch.tick(); {
 				m_posed3D.fastClear();
 				m_posed2D.fastClear();
@@ -326,14 +326,14 @@ namespace DistributedRenderer {
 				// it allows us to trigger the TAA code.
 				m_debugCamera->onPose(m_posed3D);
 			} m_poseWatch.tock();
-			//END_PROFILER_EVENT();
+			END_PROFILER_EVENT();
 
 			// Wait
 			// Note: we might end up spending all of our time inside of
 			// RenderDevice::beginFrame.  Waiting here isn't double waiting,
 			// though, because while we're sleeping the CPU the GPU is working
 			// to catch up.
-			//BEGIN_PROFILER_EVENT("Wait");
+			BEGIN_PROFILER_EVENT("Wait");
 			m_waitWatch.tick(); {
 				RealTime nowAfterLoop = System::time();
 
@@ -365,27 +365,27 @@ namespace DistributedRenderer {
 					m_lastFrameOverWait = lerp(m_lastFrameOverWait, thisOverWait, 0.1);
 				}
 			}  m_waitWatch.tock();
-			//END_PROFILER_EVENT();
+			END_PROFILER_EVENT();
 
 			// Graphics
-			//debugAssertGLOk();
+			debugAssertGLOk();
 			if ((submitToDisplayMode() == SubmitToDisplayMode::BALANCE) && (!renderDevice->swapBuffersAutomatically())) {
 				swapBuffers();
 			}
 
 			if (notNull(m_gazeTracker)) {
-				//BEGIN_PROFILER_EVENT("Gaze Tracker");
+				BEGIN_PROFILER_EVENT("Gaze Tracker");
 				sampleGazeTrackerData();
-				//END_PROFILER_EVENT();
+				END_PROFILER_EVENT();
 			}
 
-			//BEGIN_PROFILER_EVENT("Graphics");
+			BEGIN_PROFILER_EVENT("Graphics");
 			renderDevice->beginFrame();
 			m_widgetManager->onBeforeGraphics();
 			m_graphicsWatch.tick(); {
-				//debugAssertGLOk();
+				debugAssertGLOk();
 				renderDevice->pushState(); {
-					//debugAssertGLOk();
+					debugAssertGLOk();
 					onGraphics(renderDevice, m_posed3D, m_posed2D);
 				} renderDevice->popState();
 			}  m_graphicsWatch.tock();
@@ -393,7 +393,7 @@ namespace DistributedRenderer {
 			if ((submitToDisplayMode() == SubmitToDisplayMode::MINIMIZE_LATENCY) && (!renderDevice->swapBuffersAutomatically())) {
 				swapBuffers();
 			}
-			//END_PROFILER_EVENT();
+			END_PROFILER_EVENT();
 		}
 		
 
@@ -425,7 +425,7 @@ namespace DistributedRenderer {
 	void RApp::onGraphics(RenderDevice* rd, Array<shared_ptr<Surface> >& posed3D, Array<shared_ptr<Surface2D> >& posed2D) {
 
 		rd->pushState(); {
-			//debugAssert(notNull(activeCamera()));
+			debugAssert(notNull(activeCamera()));
 			rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
 			onGraphics3D(rd, posed3D);
 		} rd->popState();
