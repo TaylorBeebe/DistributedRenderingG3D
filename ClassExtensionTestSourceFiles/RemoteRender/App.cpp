@@ -196,9 +196,9 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurface
     } rd->popState();
 
     // Copy the final buffer to the server screen
-    //rd->push2D(); {
-    //    Draw::rect2D(m_finalFramebuffer->texture(0)->rect2DBounds(), rd, Color3::white(), m_finalFramebuffer->texture(0));
-    //} rd->pop2D();
+    rd->push2D(); {
+        Draw::rect2D(m_finalFramebuffer->texture(0)->rect2DBounds(), rd, Color3::white(), m_finalFramebuffer->texture(0));
+    } rd->pop2D();
 
     if (clientWantsImage.load() != 0) {
         Array<shared_ptr<WebServer::WebSocket>> array;
