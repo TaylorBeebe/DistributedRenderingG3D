@@ -308,7 +308,7 @@ namespace DistributedRenderer {
 
 		if (frame_arrived) {
 			// display network frame by writing net buffer into native window buffer
-			renderDevice->push2D(finalFrameBuffer()); {
+			renderDevice->push2D(renderDevice->viewport()); {
 				Draw::rect2D(finalFrameBuffer()->texture(0)->rect2DBounds(), renderDevice, Color3::white(), finalFrameBuffer()->texture(0));
 			} renderDevice->pop2D();
 
