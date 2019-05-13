@@ -282,6 +282,10 @@ namespace DistributedRenderer {
                 return m_finalFrameBuffer;
             }
 
+			shared_ptr<Framebuffer> framebuffer() {
+				return m_framebuffer;
+			}
+
 			void setFinalFrameBuffer(shared_ptr<ImageDist> i) {
 				
 				m_finalFrameBuffer->setTexture0(TextureDist::fromImage("distributed_image", i));
