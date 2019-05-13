@@ -49,15 +49,19 @@ namespace DistributedRenderer{
         try{
 
             BinaryInput& header = iter.headerBinaryInput();
-            uint32 batch_id = header.readUInt32();
+            //uint32 batch_id = header.readUInt32();
 
 			shared_ptr<ImageDist> frame;
+			shared_ptr<FramebufferDist> buffer;
 
             switch(iter.type()){
                 case PacketType::FRAME:
 
 					frame = ImageDist::fromBinaryInput(iter.binaryInput(), ImageFormat::RGB8());
-					the_app->setFinalFrameBuffer(frame);
+
+					buffer = FramebufferDist::create(TextureDist::fromImage("test", frame));
+
+					the_app->setFinalFrameBuffer(buffer);
 
                     // convert to texture and toggle flag
                     cout << "Received frame!" << endl;
