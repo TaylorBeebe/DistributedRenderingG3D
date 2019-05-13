@@ -124,15 +124,11 @@ namespace DistributedRenderer{
         BinaryOutput* bo = BinaryUtils::create();
         BinaryOutput* header = BinaryUtils::toBinaryOutput(batch_id);
 
-        //shared_ptr<Framebuffer> buffer = the_app->renderDevice->drawFramebuffer();
-        // Draw::rect2D(buffer->texture(0)->rect2DBounds(), the_app->renderDevice, Color3::white(), buffer->texture(0));
 
-		//if (the_app->renderDevice->currentReadFramebufferComplete()) {
+		shared_ptr<TextureDist> td = TextureDist::fromTexture(the_app->framebuffer()->texture(0));
+		shared_ptr<ImageDist> frame = td->toImage5(bounds, ImageFormat::RGB8());
+		frame->serialize(*bo, Image::PNG);
 
-			shared_ptr<TextureDist> td = TextureDist::fromTexture(the_app->framebuffer()->texture(0));
-			shared_ptr<ImageDist> frame = td->toImage5(bounds, ImageFormat::RGB8());
-			frame->serialize(*bo, Image::PNG);
-		//}
         send(PacketType::FRAGMENT, *header, *bo);
 
         delete bo; 
