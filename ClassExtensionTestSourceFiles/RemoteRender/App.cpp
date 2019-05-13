@@ -6,6 +6,7 @@
 #include <time.h>
 #include <mutex>
 
+
 // Tells C++ to invoke command-line main() function even on OS X and Win32.
 G3D_START_AT_MAIN();
 
@@ -60,7 +61,7 @@ void App::onInit() {
     developerWindow->cameraControlWindow->setVisible(false);
 
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
-    m_finalFramebuffer = FramebufferDist::create(TextureDist::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
+    m_finalFramebuffer = FramebufferDist::create(DistributedRenderer::TextureDist::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 
 #   ifdef G3D_DEBUG
         loadScene("G3D Simple Cornell Box");
@@ -195,22 +196,22 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurface
     } rd->popState();
 
     // Copy the final buffer to the server screen
-    rd->push2D(); {
-        Draw::rect2D(m_finalFramebuffer->texture(0)->rect2DBounds(), rd, Color3::white(), m_finalFramebuffer->texture(0));
-    } rd->pop2D();
+    //rd->push2D(); {
+    //    Draw::rect2D(m_finalFramebuffer->texture(0)->rect2DBounds(), rd, Color3::white(), m_finalFramebuffer->texture(0));
+    //} rd->pop2D();
 
     if (clientWantsImage.load() != 0) {
         Array<shared_ptr<WebServer::WebSocket>> array;
         m_webServer->getWebSocketArray(socketUri, array);
 
-		shared_ptr<TextureDist> td = dynamic_pointer_cast<TextureDist>(m_finalFramebuffer->texture(0));
+		shared_ptr<DistributedRenderer::TextureDist> td = dynamic_pointer_cast<DistributedRenderer::TextureDist>(m_finalFramebuffer->texture(0));
 
-		shared_ptr<ImageDist> i = td->toImage5(Rect2D::xyxy(0, 0, td->width(), td->height() / 4));
+		shared_ptr<DistributedRenderer::ImageDist> i = td->toImage5(Rect2D::xyxy(0, 0, td->width(), td->height() / 4));
 
-		Array<shared_ptr<ImageDist>> imageArray = {i,i,i,i};
+		Array<shared_ptr<DistributedRenderer::ImageDist>> imageArray = {i,i,i,i};
 
         // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
-		sendImage(TextureDist::CombineImages(imageArray), array, Image::JPEG);
+		sendImage(DistributedRenderer::TextureDist::CombineImages(imageArray), array, Image::JPEG);
         clientWantsImage = 0;
     }
 }
