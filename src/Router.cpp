@@ -58,7 +58,7 @@ namespace Router{
         cout << "Rerouting update packet no. " << current_batch << endl;
 
         // reset batch variables
-        pieces = 0;
+        //pieces = 0;
 
         // route transform data to all remotes
         broadcast(PacketType::UPDATE, 
@@ -67,17 +67,20 @@ namespace Router{
                   false);
     }
 
-    void Router::handleFragment(remote_connection_t* conn_vars, BinaryInput* header, BinaryInput* body) {
+    void Router::handleFragment(remote_connection_t* conn_vars, BinaryInput* h, BinaryInput* body) {
 
-        uint32 batch_id = header->readUInt32();
+        uint32 batch_id = h->readUInt32();
 
-        // old frag, toss out
-        if (batch_id != current_batch) return;
+        // old fragment, toss out
+		if (batch_id != current_batch) {
+			//cout << "Frame was old" << endl;
+			//return;
+		}
 
         // attach fragment to buffer
 		fragments[conn_vars->frag_loc] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8());
 
-        cout << "Received fragment from " << conn_vars->id << endl;
+        cout << "Received fragment from " << conn_vars->id << ", total: " << pieces + 1 << "/" << numRemotes() << endl;
 
         // check if finished
         if (++pieces == numRemotes()){
@@ -93,6 +96,8 @@ namespace Router{
             frame->serialize(*bo, Image::PNG);
 
             send(PacketType::FRAME, client, header, bo);
+
+			pieces = 0;
         } 
     }
 
@@ -101,9 +106,6 @@ namespace Router{
 // =========================================
 
     void Router::broadcast(PacketType t, BinaryOutput* header, BinaryOutput* body, bool include_client) {
-
-    	cout << "Broadcasting message..." << endl;
-
     	// optionally send to client
     	if (include_client) send(t, client, header, body);
 
@@ -313,7 +315,6 @@ namespace Router{
                     try {  
                         switch(iter.type()){
                             case PacketType::FRAGMENT: // a frame fragment
-                                cout << "remote " << conn_vars->id << "answered, total: " << (pieces + 1) << "/" << numRemotes() << endl;
                                 handleFragment(conn_vars, &iter.headerBinaryInput(), &iter.binaryInput());
                                 break;
                             case PacketType::TERMINATE:
