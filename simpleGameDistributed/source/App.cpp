@@ -51,7 +51,10 @@ void App::onInit() {
 
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
 	loadScene("Level");
-    setActiveCamera(m_scene->typedEntity<Camera>("camera"));
+	
+	m_finalFramebuffer = FramebufferDist::create(DistributedRenderer::TextureDist::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
+    
+	setActiveCamera(m_scene->typedEntity<Camera>("camera"));
     developerWindow->sceneEditorWindow->setPreventEntitySelect(true);
 }
 
@@ -98,6 +101,13 @@ void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
     // the screen horizontally.
     debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
 
+}
+
+void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
+	// Perform gamma correction, bloom, and SSAA, and write to the native window frame buffer
+	rd->pushState(m_finalFramebuffer); {
+		GApp::onGraphics3D(rd, allSurfaces);
+	} rd->popState();
 }
 
 
