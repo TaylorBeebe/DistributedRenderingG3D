@@ -283,7 +283,7 @@ namespace DistributedRenderer {
             }
 
 			shared_ptr<Framebuffer> framebuffer() {
-				return m_framebuffer;
+				return m_finalFrameBuffer;
 			}
 
 			void setFinalFrameBuffer(shared_ptr<FramebufferDist> b) 

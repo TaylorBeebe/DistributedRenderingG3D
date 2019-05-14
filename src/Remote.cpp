@@ -125,7 +125,7 @@ namespace DistributedRenderer{
         BinaryOutput* header = BinaryUtils::toBinaryOutput(batch_id);
 
 
-		shared_ptr<TextureDist> td = TextureDist::fromTexture(the_app->framebuffer()->texture(0));
+		shared_ptr<TextureDist> td = TextureDist::fromTexture(the_app->finalFrameBuffer()->texture(0));
 		shared_ptr<ImageDist> frame = td->toImage5(bounds, ImageFormat::RGB8());
 		frame->serialize(*bo, Image::PNG);
 

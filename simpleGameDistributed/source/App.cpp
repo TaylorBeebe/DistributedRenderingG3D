@@ -53,6 +53,8 @@ void App::onInit() {
 	loadScene("Level");
 	
 	m_finalFramebuffer = FramebufferDist::create(DistributedRenderer::TextureDist::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
+
+	RApp::setFinalFrameBuffer(m_finalFramebuffer);
     
 	setActiveCamera(m_scene->typedEntity<Camera>("camera"));
     developerWindow->sceneEditorWindow->setPreventEntitySelect(true);
@@ -108,6 +110,8 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurface
 	rd->pushState(m_finalFramebuffer); {
 		GApp::onGraphics3D(rd, allSurfaces);
 	} rd->popState();
+
+	RApp::setFinalFrameBuffer(m_finalFramebuffer);
 }
 
 
