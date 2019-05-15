@@ -15,7 +15,7 @@
 #include "G3D-base/CPUPixelTransferBuffer.h"
 #include "G3D-base/Projection.h"
 #include "G3D-gfx/glcalls.h"
-#include "RenderDevice.h"
+#include "G3d-gfx/RenderDevice.h"
 #include "G3D-gfx/Texture.h"
 #include "G3D-gfx/getOpenGLState.h"
 #include "G3D-gfx/VertexBuffer.h"
