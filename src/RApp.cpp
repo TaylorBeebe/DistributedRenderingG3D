@@ -479,7 +479,7 @@ namespace DistributedRenderer {
 	        scene()->lightingEnvironment(), m_gbuffer, allSurfaces);
 
 	    // Debug visualizations and post-process effects
-		((RenderDeviceDist*)rd)->pushState(m_framebuffer); {
+		rd->pushState(m_framebuffer); {
 
 	        // Call to make the App show the output of debugDraw(...)
 	        rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
