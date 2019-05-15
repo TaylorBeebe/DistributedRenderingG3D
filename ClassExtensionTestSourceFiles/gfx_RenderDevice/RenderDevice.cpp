@@ -32,12 +32,20 @@
 namespace G3D {
 
 
+	/*
+		Added by T.Beebe on 5/15/19
+	*/
+
 	Rect2D bounds;
 
-	void setClipping(Rect2D _bounds) {
+	void RenderDevice::setClipping(Rect2D _bounds)
+	{
 		bounds = _bounds;
 	}
 
+	/*
+		End of functions added by T.Beebe on 5/15/19
+	*/
 
 thread_local RenderDevice* RenderDevice::current = nullptr;
 String RenderDevice::dummyString;
@@ -1408,7 +1416,12 @@ void RenderDevice::pushState(const shared_ptr<Framebuffer>& fb) {
         setFramebuffer(fb);
 
         // When we change framebuffers, we almost certainly don't want to use the old clipping region
+
+		//altered by T.Beebe 5/15/19
         setClip2D(bounds);
+
+		//end of alterations by T.Beebe 5/15/19
+
         setViewport(fb->rect2DBounds());
     }
     debugAssert(m_state.drawFramebuffer && m_state.readFramebuffer);
