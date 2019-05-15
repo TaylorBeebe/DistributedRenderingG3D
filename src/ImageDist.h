@@ -109,6 +109,44 @@ namespace DistributedRenderer {
 			return imageFormat;
 		}
 
+		shared_ptr<PixelTransferBuffer> toPixelTransferBuffer(Rect2D rect, shared_ptr<PixelTransferBuffer> buffer = nullptr) {
+			// clip to bounds of image
+			rect = rect.intersect(bounds());
+
+			if (rect.isEmpty()) {
+				return nullptr;
+			}
+
+			if (isNull(buffer)) {
+				buffer = CPUPixelTransferBuffer::create((int)rect.width(), (int)rect.height(), m_format, AlignedMemoryManager::create(), 1, 1);
+			}
+			else {
+				debugAssert(buffer->width() == rect.width());
+				debugAssert(buffer->height() == rect.height());
+				debugAssert(buffer->format() == m_format);
+			}
+
+			BYTE* pixels = m_image->accessPixels();
+			if (pixels) {
+				const size_t bytesPerPixel = iCeil(buffer->format()->cpuBitsPerPixel / 8.0f);
+				const size_t rowStride = int(rect.width())  * bytesPerPixel;
+				const size_t offsetStride = int(rect.x0())     * bytesPerPixel;
+
+				debugAssert(isFinite(rect.width()) && isFinite(rect.height()));
+
+				uint8* ptr = (uint8*)buffer->mapWrite();
+				for (int row = 0; row < int(rect.height()); ++row) {
+					// Note that we flip vertically while copying
+					System::memcpy(ptr + buffer->rowOffset(row), m_image->getScanLine(rect.y0() + rect.height() - 1 - row + offsetStride), rowStride);
+
+					//int(rect.height()) - 1 - (row + int(rect.y0()))) + offsetStride, rowStride);
+				}
+				buffer->unmap();
+			}
+
+			return buffer;
+		}
+
 		static shared_ptr<ImageDist> fromBinaryInput(BinaryInput& bi, const ImageFormat* imageFormat) {
 			const shared_ptr<ImageDist>& img = createShared<ImageDist>();
 
