@@ -70,7 +70,8 @@ namespace DistributedRenderer{
                     cout << "Received frame!" << endl;
 
 					++iter;
-                    return true;
+
+					return true;
                 case PacketType::TERMINATE:
                     // clean up
                     break;
