@@ -13,6 +13,10 @@ namespace DistributedRenderer {
 
 		ImageDist() : Image() {	}	
 
+		fipImage* image() {
+			return m_image;
+		}
+
 		static const ImageFormat* determineImageFormat(const fipImage* image) {
 			debugAssert(image->isValid() && image->getImageType() != FIT_UNKNOWN);
 

@@ -27,7 +27,7 @@ namespace DistributedRenderer {
         // display
         static const uint32 FRAMERATE = 30;
         
-        static const uint32 SCREEN_WIDTH = 1920;
+        static const uint32 SCREEN_WIDTH = 1280;
         static const uint32 SCREEN_HEIGHT = 1080;
 
         static const uint32 PIXEL_BLEED = 100;
@@ -283,7 +283,7 @@ namespace DistributedRenderer {
             }
 
 			shared_ptr<Framebuffer> framebuffer() {
-				return m_finalFrameBuffer;
+				return m_framebuffer;
 			}
 
 			void setFinalFrameBuffer(shared_ptr<FramebufferDist> b) 
