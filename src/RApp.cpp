@@ -458,7 +458,7 @@ namespace DistributedRenderer {
 	            swapBuffers();
 	        }
 	        rd->clear();
-	        rd->pushState(); {
+			rd->pushState(); {
 	            rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
 	            drawDebugShapes();
 	        } rd->popState();
@@ -479,7 +479,7 @@ namespace DistributedRenderer {
 	        scene()->lightingEnvironment(), m_gbuffer, allSurfaces);
 
 	    // Debug visualizations and post-process effects
-	    rd->pushState(m_framebuffer); {
+		((RenderDeviceDist*)rd)->pushState(m_framebuffer); {
 
 	        // Call to make the App show the output of debugDraw(...)
 	        rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
