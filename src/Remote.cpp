@@ -122,8 +122,6 @@ namespace DistributedRenderer{
     // @post: renders a new frame and sends it in a frame packet back to the router
     void Remote::sendFrame(uint32 batch_id){
 
-        cout << "Sending fragment of frame " << batch_id << " to router" << endl;
-
         BinaryOutput* bo = BinaryUtils::create();
         BinaryOutput* header = BinaryUtils::toBinaryOutput(batch_id);
 
@@ -134,7 +132,7 @@ namespace DistributedRenderer{
 
         send(PacketType::FRAGMENT, *header, *bo);
 
-        cout << "Sent fragment ofr frame no. " << batch_id << " at " << current_time_ms() << endl;
+        cout << "Sent fragment of frame no. " << batch_id << " at " << current_time_ms() << endl;
  
         delete bo; 
         delete header;
