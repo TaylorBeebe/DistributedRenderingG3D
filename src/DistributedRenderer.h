@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include <chrono>
 #include "FramebufferDist.h"
 
 using namespace G3D;
@@ -27,8 +28,8 @@ namespace DistributedRenderer {
         // display
         static const uint32 FRAMERATE = 30;
         
-        static const uint32 SCREEN_WIDTH = 1280;
-        static const uint32 SCREEN_HEIGHT = 1080;
+        static const uint32 SCREEN_WIDTH = 1080;
+        static const uint32 SCREEN_HEIGHT = 720;
 
         static const uint32 PIXEL_BLEED = 100;
 

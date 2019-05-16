@@ -3,6 +3,7 @@
 using namespace std;
 using namespace DistributedRenderer;
 using namespace G3D;
+using namespace std::chrono; 
 
 namespace DistributedRenderer{
 namespace Router{
@@ -55,7 +56,11 @@ namespace Router{
        
         current_batch = header->readUInt32();
 
-        cout << "Rerouting update packet no. " << current_batch << endl;
+        milliseconds ms = duration_cast< milliseconds >(
+            system_clock::now().time_since_epoch()
+        );
+
+        cout << "Rerouting update packet " << current_batch << " at " << endl;
 
         // reset batch variables
         //pieces = 0;
@@ -84,7 +89,6 @@ namespace Router{
 
         // check if finished
         if (++pieces == numRemotes()){
-            cout << "Sending frame no. " << batch_id << " to client" << endl;
             
             shared_ptr<ImageDist> frame = TextureDist::CombineImages(fragments);
 
@@ -95,7 +99,13 @@ namespace Router{
             // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
             frame->serialize(*bo, Image::PNG);
 
-            send(PacketType::FRAME, client, header, bo);
+            fastsend(PacketType::FRAME, client, header, bo);
+
+            milliseconds ms = duration_cast< milliseconds >(
+                system_clock::now().time_since_epoch()
+            );
+
+            cout << "Sent frame no. " << batch_id << " to client at " << ms << endl;
 
 			pieces = 0;
         } 
@@ -127,8 +137,16 @@ namespace Router{
         conn->send(t, *nb, *nh, 0);
     }
 
-    void Router::send(PacketType t, shared_ptr<NetConnection> conn){
+    void Router::send(PacketType t, shared_ptr<NetConnection> conn) {
         send(t, conn, BinaryUtils::empty(), BinaryUtils::empty());
+    }
+
+    void fastsend(PacketType t, shared_ptr<NetConnection> conn) {
+        fastsend(t, conn, BinaryUtils::empty(), BinaryUtils::empty());
+    }
+
+    void fastsend(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body) {
+        conn->send(t, *body, *header, 0);
     }
 
     void Router::registration() {
@@ -195,12 +213,12 @@ namespace Router{
             config->writeUInt32(frag_height);
 
             cout << "Sending CONFIG packet to Remote Node " << cv->id << " offset_y: " << curr_y << ", height: " << frag_height << endl;
-            send(PacketType::CONFIG, cv->connection, BinaryUtils::empty(), config);
+            fastsend(PacketType::CONFIG, cv->connection, BinaryUtils::empty(), config);
 
             // store internal record
             cv->y = curr_y;
             cv->h = frag_height;
-            cv->frag_loc = frag++;
+            cv->frag_loc = numRemotes() - (frag++);
 
             curr_y += frag_height;
         }

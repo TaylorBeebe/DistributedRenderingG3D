@@ -103,13 +103,14 @@ namespace DistributedRenderer{
 
 				void setState(RouterState s) { router_state = s; }
 
-				// frame management
-
 				// networking
 				void broadcast(PacketType t, BinaryOutput* header, BinaryOutput* body, bool include_client);
 				void broadcast(PacketType t, bool include_client);
 				void send(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body);
 				void send(PacketType t, shared_ptr<NetConnection> conn);
+
+				void fastsend(PacketType t, shared_ptr<NetConnection> conn);
+				void fastsend(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body);
 
 				void registration();
 				void configuration();

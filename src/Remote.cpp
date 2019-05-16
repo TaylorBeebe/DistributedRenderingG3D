@@ -2,6 +2,7 @@
 #include "FramebufferDist.h"
 
 using namespace DistributedRenderer;
+using namespace std::chrono;
 
 namespace DistributedRenderer{
 
@@ -52,7 +53,7 @@ namespace DistributedRenderer{
 		uint32 y = bi->readUInt32();
 		uint32 h = bi->readUInt32();
 
-        cout << "Config delivered height: " << h << ", y: " << y << endl;
+        cout << "Config delivered, height: " << h << ", y: " << y << endl;
 
 		setClip(y, h);
 	}
@@ -69,6 +70,12 @@ namespace DistributedRenderer{
 
             switch(iter.type()){
                 case PacketType::UPDATE: // update data
+                    milliseconds ms = duration_cast< milliseconds >(
+                        system_clock::now().time_since_epoch()
+                    );
+
+                    cout << "Received state update " << batch_id << " at " << ms << endl;
+
                     sync(&iter.binaryInput());
                     the_app->oneFrameAdHoc();
                     sendFrame(batch_id);
@@ -131,6 +138,12 @@ namespace DistributedRenderer{
 
         send(PacketType::FRAGMENT, *header, *bo);
 
+        milliseconds ms = duration_cast< milliseconds >(
+            system_clock::now().time_since_epoch()
+        );
+
+        cout << "Sent fragment ofr frame no. " << batch_id << " at " << ms << endl;
+ 
         delete bo; 
         delete header;
     }
