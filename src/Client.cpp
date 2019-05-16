@@ -4,7 +4,6 @@
 using namespace std;
 using namespace G3D;
 using namespace DistributedRenderer;
-using namespace std::chrono;
 
 namespace DistributedRenderer{
 
@@ -67,12 +66,8 @@ namespace DistributedRenderer{
 
 					the_app->setFinalFrameBuffer(buffer);
 
-                    milliseconds ms = duration_cast< milliseconds >(
-                        system_clock::now().time_since_epoch()
-                    );
-
                     // convert to texture and toggle flag
-                    cout << "Received frame at " << ms << endl;
+                    cout << "Received frame at " << current_time_ms() << endl;
 
 					++iter;
 
@@ -120,10 +115,7 @@ namespace DistributedRenderer{
         if(batch->length() > 0){
             send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id++), *batch);
             last_update = System::time();
-            milliseconds ms = duration_cast< milliseconds >(
-                system_clock::now().time_since_epoch()
-            );
-            cout << "Update " << current_batch_id << " sent at " << ms << endl;
+            cout << "Update " << current_batch_id << " sent at " << current_time_ms() << endl;
         }
 
     }

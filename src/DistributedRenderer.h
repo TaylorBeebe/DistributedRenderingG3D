@@ -12,6 +12,7 @@
 
 using namespace G3D;
 using namespace std;
+using namespace chrono;
 
 // ********** COMPUTERS **********
 // 1 -- 137.165.8.92
@@ -87,6 +88,12 @@ namespace DistributedRenderer {
 
 		return false;
     }
+
+	static uint32 current_time_ms() {
+		return (uint32) duration_cast<milliseconds>(
+			system_clock::now().time_since_epoch()
+		).count();
+	}
 
     // Easy conversion of data types to BinaryOutputs
     // @return: We must return a pointer to the newly contructed BinaryOutputs,

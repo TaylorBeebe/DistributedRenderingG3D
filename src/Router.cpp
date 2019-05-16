@@ -3,7 +3,6 @@
 using namespace std;
 using namespace DistributedRenderer;
 using namespace G3D;
-using namespace std::chrono; 
 
 namespace DistributedRenderer{
 namespace Router{
@@ -56,11 +55,7 @@ namespace Router{
        
         current_batch = header->readUInt32();
 
-        milliseconds ms = duration_cast< milliseconds >(
-            system_clock::now().time_since_epoch()
-        );
-
-        cout << "Rerouting update packet " << current_batch << " at " << endl;
+        cout << "Rerouting update packet " << current_batch << " at " << current_time_ms() << endl;
 
         // reset batch variables
         //pieces = 0;
@@ -99,13 +94,9 @@ namespace Router{
             // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
             frame->serialize(*bo, Image::PNG);
 
-            fastsend(PacketType::FRAME, client, header, bo);
+			fastsend(PacketType::FRAME, client, header, bo);
 
-            milliseconds ms = duration_cast< milliseconds >(
-                system_clock::now().time_since_epoch()
-            );
-
-            cout << "Sent frame no. " << batch_id << " to client at " << ms << endl;
+            cout << "Sent frame no. " << batch_id << " to client at " << current_time_ms() << endl;
 
 			pieces = 0;
         } 
@@ -141,11 +132,11 @@ namespace Router{
         send(t, conn, BinaryUtils::empty(), BinaryUtils::empty());
     }
 
-    void fastsend(PacketType t, shared_ptr<NetConnection> conn) {
+    void Router::fastsend(PacketType t, shared_ptr<NetConnection> conn) {
         fastsend(t, conn, BinaryUtils::empty(), BinaryUtils::empty());
     }
 
-    void fastsend(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body) {
+    void Router::fastsend(PacketType t, shared_ptr<NetConnection> conn, BinaryOutput* header, BinaryOutput* body) {
         conn->send(t, *body, *header, 0);
     }
 
