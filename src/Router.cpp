@@ -78,7 +78,7 @@ namespace Router{
 		}
 
         // attach fragment to buffer
-		fragments[conn_vars->frag_loc] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8());
+		fragments[numRemotes() - conn_vars->frag_loc - 1] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8());
 
         cout << "Received fragment from " << conn_vars->id << ", total: " << pieces + 1 << "/" << numRemotes() << endl;
 
@@ -209,7 +209,7 @@ namespace Router{
             // store internal record
             cv->y = curr_y;
             cv->h = frag_height;
-            cv->frag_loc = numRemotes() - (frag++);
+			cv->frag_loc = frag++;
 
             curr_y += frag_height;
         }

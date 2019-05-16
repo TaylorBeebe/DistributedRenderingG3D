@@ -26,16 +26,12 @@ namespace DistributedRenderer {
 
     namespace Constants {
 
-        // display
-        static const uint32 FRAMERATE = 30;
-        
-        static const uint32 SCREEN_WIDTH = 1080;
+        // display        
+        static const uint32 SCREEN_WIDTH = 1280;
         static const uint32 SCREEN_HEIGHT = 720;
 
-        static const uint32 PIXEL_BLEED = 100;
-
         // networking
-        static const RealTime CONNECTION_WAIT = 10;
+        static const RealTime CONNECTION_WAIT = 2;
         static const bool COMPRESS_NETWORK_DATA = false;
 
         static const uint16 PORT = 8080; // node port
