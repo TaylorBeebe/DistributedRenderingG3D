@@ -488,6 +488,17 @@ namespace DistributedRenderer {
 
 		shared_ptr<ImageDist> toImage5(Rect2D rec = Rect2D::xyxy(0, 0, 0, 0), const ImageFormat* outFormat = ImageFormat::AUTO(), int mipLevel = 0, CubeFace face = CubeFace::POS_X) const {
 			shared_ptr<ImageDist> i = ImageDist::fromPixelTransferBuffer(Texture::toPixelTransferBuffer(outFormat, mipLevel, face));
+
+			//i->save("TestFrame.png");
+
+			//int height = rec.height();
+
+			//int y0 = rec.y0();
+
+			//int in = int(rec.height()) - 1 - (0 + int(rec.y0()));
+
+ 			//BYTE* d = i->image()->getScanLine(int(rec.height()) - 1 - (0 + int(rec.y0())));
+
 			shared_ptr<PixelTransferBuffer> p = i->toPixelTransferBuffer(rec);
 			return ImageDist::fromPixelTransferBuffer(p);
 		}

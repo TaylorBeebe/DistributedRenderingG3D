@@ -13,7 +13,7 @@ int main(int argc, const char* argv[]) {
     settings.window.width       = 1280; 
     settings.window.height      = 720;
 
-	App(settings, NodeType::CLIENT).run();
+	App(settings, NodeType::REMOTE).run();
 }
 
 
@@ -52,9 +52,9 @@ void App::onInit() {
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
 	loadScene("Level");
 	
-	m_finalFramebuffer = FramebufferDist::create(DistributedRenderer::TextureDist::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
+	//m_finalFramebuffer = FramebufferDist::create(DistributedRenderer::TextureDist::createEmpty("App::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 
-	RApp::setFinalFrameBuffer(m_finalFramebuffer);
+	//RApp::setFinalFrameBuffer(m_finalFramebuffer);
     
 	setActiveCamera(m_scene->typedEntity<Camera>("camera"));
     developerWindow->sceneEditorWindow->setPreventEntitySelect(true);
@@ -105,14 +105,17 @@ void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
 
 }
 
-void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
-	// Perform gamma correction, bloom, and SSAA, and write to the native window frame buffer
-	rd->pushState(m_finalFramebuffer); {
-		GApp::onGraphics3D(rd, allSurfaces);
-	} rd->popState();
-
-	RApp::setFinalFrameBuffer(m_finalFramebuffer);
-}
+//void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
+//	
+//	// Perform gamma correction, bloom, and SSAA, and write to the native window frame buffer
+//
+//	RenderDeviceDist* rdd = (RenderDeviceDist*) rd;
+//	
+//	rd->pushState(m_finalFramebuffer); {
+//		GApp::onGraphics3D(rd, allSurfaces);
+//	} rd->popState();
+//
+//}
 
 
 bool App::onEvent(const GEvent& event) {

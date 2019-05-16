@@ -154,7 +154,7 @@ namespace DistributedRenderer {
 				
 				Remote* remote = (Remote*) network_node;
 				// set the clipping
-				((RenderDeviceDist*) renderDevice)->setClipping(remote->getClip());
+				renderDevice->setClipping(remote->getClip());
 				m_finalFrameBuffer = FramebufferDist::create(TextureDist::createEmpty("RApp::m_finalFramebuffer[0]", renderDevice->width(), renderDevice->height(), ImageFormat::RGB8(), Texture::DIM_2D));
 
 				// Busy wait for a message and let receive trigger a render
@@ -458,7 +458,7 @@ namespace DistributedRenderer {
 	            swapBuffers();
 	        }
 	        rd->clear();
-	        rd->pushState(); {
+			rd->pushState(); {
 	            rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
 	            drawDebugShapes();
 	        } rd->popState();
@@ -479,7 +479,7 @@ namespace DistributedRenderer {
 	        scene()->lightingEnvironment(), m_gbuffer, allSurfaces);
 
 	    // Debug visualizations and post-process effects
-	    rd->pushState(m_framebuffer); {
+		rd->pushState(m_framebuffer); {
 
 	        // Call to make the App show the output of debugDraw(...)
 	        rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
