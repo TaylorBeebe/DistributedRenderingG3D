@@ -130,10 +130,6 @@ namespace DistributedRenderer{
 		shared_ptr<PixelTransferBuffer> p = the_app->finalFrameBuffer()->texture(0)->toPixelTransferBuffer(ImageFormat::RGB8());
 		shared_ptr<ImageDist> frame = ImageDist::fromPixelTransferBuffer(p,bounds);
 
-		frame->save("test.png");
-
-		//shared_ptr<TextureDist> td = TextureDist::fromTexture(the_app->framebuffer()->texture(0));
-		//shared_ptr<ImageDist> frame = td->toImage5(bounds, ImageFormat::RGB8());
 		frame->serialize(*bo, Image::JPEG);
 
         send(PacketType::FRAGMENT, *header, *bo);
