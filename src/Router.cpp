@@ -208,6 +208,9 @@ namespace Router{
 
             remote_connection_t* cv = iter->second;
 
+			// add the spill to the last node
+			if (frag == numRemotes() - 1) frag_height += Constants::SCREEN_HEIGHT % numRemotes();
+
             // send the config data
             BinaryOutput* config = BinaryUtils::create();
 
