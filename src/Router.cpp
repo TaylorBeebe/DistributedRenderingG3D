@@ -93,7 +93,7 @@ namespace Router{
             BinaryOutput* bo = BinaryUtils::create();
 
             // JPEG encoding/decoding takes more time but substantially less bandwidth than PNG
-            frame->serialize(*bo, Image::PNG);
+            frame->serialize(*bo, Image::JPEG);
 
 			fastsend(PacketType::FRAME, client, header, bo);
 
