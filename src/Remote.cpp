@@ -100,9 +100,9 @@ namespace DistributedRenderer{
     // @pre: transform packet with list of transforms of entities to update
     // @post: updates frame of corresponding entity with new position data
     void Remote::sync(BinaryInput* update){
-
+#if (DEBUG)
         cout << "Syncing update..." << endl;
-
+#endif
         while(update->hasMore()){
             uint32 id = update->readUInt32();
             float x = update->readFloat32();
