@@ -147,6 +147,7 @@ namespace DistributedRenderer {
 			return buffer;
 		}
 
+
 		static shared_ptr<ImageDist> fromBinaryInput(BinaryInput& bi, const ImageFormat* imageFormat) {
 			const shared_ptr<ImageDist>& img = createShared<ImageDist>();
 
@@ -213,11 +214,19 @@ namespace DistributedRenderer {
 			return img;
 		}
 
+
+		static shared_ptr<ImageDist> fromPixelTransferBuffer(const shared_ptr<PixelTransferBuffer>& buffer, Rect2D bounds) {
+			const shared_ptr<ImageDist>& img = create(bounds.width(), bounds.height(), buffer->format());
+			img->set1(buffer, bounds);
+			return img;
+		}
+
 		static shared_ptr<ImageDist> fromPixelTransferBuffer(const shared_ptr<PixelTransferBuffer>& buffer) {
 			const shared_ptr<ImageDist>& img = create(buffer->width(), buffer->height(), buffer->format());
 			img->set(buffer);
 			return img;
 		}
+
 
 		static shared_ptr<ImageDist> create(int width, int height, const ImageFormat* imageFormat) {
 			alwaysAssertM(notNull(imageFormat), "imageFormat may not be ImageFormat::AUTO() or NULL");
@@ -251,6 +260,72 @@ namespace DistributedRenderer {
 
 			return buffer;
 		}
+
+		void set1(const shared_ptr<PixelTransferBuffer>& buffer, Rect2D bounds) {
+			setSize(bounds.width(), bounds.height(), buffer->format());
+
+			set2(buffer, bounds);
+		}
+
+		void set2(const shared_ptr<PixelTransferBuffer>& buffer, Rect2D b) {
+			//debugAssert(x >= 0 && x < width());
+			//debugAssert(y >= 0 && y < height());
+
+			// Cannot copy between incompatible formats
+			if (!m_format->canInterpretAs(buffer->format())) {
+				return;
+			}
+
+			BYTE* pixels(m_image->accessPixels());
+			debugAssert(pixels);
+
+			if (notNull(pixels)) {
+				// The area we want to set and clip to image bounds
+				const Rect2D& rect = b; //Rect2D::xywh((float)x, (float)y, (float)buffer->width(), (float)buffer->height()).intersect(bounds());
+
+				if (!rect.isEmpty()) {
+					const size_t bytesPerPixel = iCeil(buffer->format()->cpuBitsPerPixel / 8.0f);
+					const size_t rowStride = size_t(rect.width() * bytesPerPixel);
+					//const size_t columnOffset = size_t(rect.x0()    * bytesPerPixel);
+
+					const uint8* src = static_cast<const uint8*>(buffer->mapRead());
+					debugAssert(notNull(src));
+
+					// For each row in the rectangle
+					for (int row = 0; row < rect.height(); ++row) {
+						BYTE* dst = m_image->getScanLine(int(buffer->height() - row - 1));
+						System::memcpy(dst, src + buffer->width() * row * bytesPerPixel, rowStride);
+					}
+					buffer->unmap();
+				}
+			}
+		}
+
+
+
+
+		//static shared_ptr<PixelTransferBuffer> clipImage(shared_ptr<ImageDist> image, Rect2D b) {
+		//	if (image == nullptr) {
+		//		return nullptr;
+		//	}
+
+		//	const int width = b.x0() - b.x1();
+		//	const int height = b.y0() - b.y1();
+
+		//	const shared_ptr<CPUPixelTransferBuffer>& buffer = CPUPixelTransferBuffer::create(width, height, image->format(), AlignedMemoryManager::create(), 1, 1);
+
+		//	const int bytesPerPixel = iCeil(buffer->format()->cpuBitsPerPixel / 8.0f);
+		//	const int memoryPerImage = width * height * bytesPerPixel;
+		//	const int memoryPerRow = width * bytesPerPixel;
+
+		//	uint8 *data = static_cast<uint8*>(buffer->buffer());
+		//		fipImage *currentImage = image->m_image;
+		//		for (int row = 0; row < height; ++row) {
+		//			System::memcpy(data +  memoryPerImage + row * memoryPerRow, currentImage->getScanLine(height - 1 - row), memoryPerRow);
+		//		}
+
+		//	return buffer;
+		//}
 	};
 
 
