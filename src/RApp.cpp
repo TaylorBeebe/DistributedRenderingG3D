@@ -451,7 +451,9 @@ namespace DistributedRenderer {
 
 	void RApp::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
 
-		rd->pushState(m_finalFrameBuffer);
+		//Gate to only bind frame buffer if it is a remote node
+		if(network_node->isTypeOf(NodeType::REMOTE))
+			rd->pushState(m_finalFrameBuffer);
 
 	    if (!scene()) {
 	        if ((submitToDisplayMode() == SubmitToDisplayMode::MAXIMIZE_THROUGHPUT) && (! rd->swapBuffersAutomatically())) {
@@ -508,8 +510,11 @@ namespace DistributedRenderer {
 	        Texture::opaqueBlackIfNull(notNull(m_gbuffer) ? m_gbuffer->texture(GBuffer::Field::SS_POSITION_CHANGE) : nullptr),
 	        activeCamera()->jitterMotion());
 	    END_PROFILER_EVENT();
+		
+		//End gate
+		if (network_node->isTypeOf(NodeType::REMOTE))
+			rd->popState();
 
-		rd->popState();
 	}
 
 	void RApp::onCleanup(){
