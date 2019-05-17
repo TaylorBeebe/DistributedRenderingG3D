@@ -47,6 +47,6 @@ x64/
 log.txt
 Debug/
 simpleGame.*
-
+*.png
 
 .DS_Store
