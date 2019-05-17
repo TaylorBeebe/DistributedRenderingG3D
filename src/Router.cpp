@@ -56,7 +56,10 @@ namespace Router{
         current_batch = header->readUInt32();
 
 		last_received_update = current_time_ms();
+
+#if (DEBUG)
         cout << "Rerouting update packet " << current_batch << " at " << last_received_update << endl;
+#endif
 
         // reset batch variables
         //pieces = 0;
@@ -74,14 +77,18 @@ namespace Router{
 
         // old fragment, toss out
 		if (batch_id != current_batch) {
-			//cout << "Frame was old" << endl;
-			//return;
+#if (DEBUG)
+			cout << "Frame was old" << endl;
+#endif
+			return;
 		}
 
         // attach fragment to buffer
-		fragments[numRemotes() - conn_vars->frag_loc - 1] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8());
+		fragments[conn_vars->frag_loc] = ImageDist::fromBinaryInput(*body, ImageFormat::RGB8());
 
+#if (DEBUG)
         cout << "Received fragment from " << conn_vars->id << ", total: " << pieces + 1 << "/" << numRemotes() << endl;
+#endif
 
         // check if finished
         if (++pieces == numRemotes()){
@@ -97,8 +104,10 @@ namespace Router{
 
 			fastsend(PacketType::FRAME, client, header, bo);
 
+#if (DEBUG)
 			uint32 ms = current_time_ms();
             cout << "Sent frame no. " << batch_id << " to client at " << ms << ", ms since update: " << ms - last_received_update << endl;
+#endif
 
 			pieces = 0;
         } 
@@ -176,10 +185,10 @@ namespace Router{
                                 break;
                             default:
                                 cout << "Set up phase was not expecting packet of type " << miter.type() << endl; 
-                        }
+						}
                     } catch (...) {
                         cout << "An error occured" << endl;
-                    }
+					}
                 } // end message queue iterate
             } // end connections iterate
         } // end while
@@ -206,7 +215,8 @@ namespace Router{
             config->writeUInt32(frag_height);
 
             cout << "Sending CONFIG packet to Remote Node " << cv->id << " offset_y: " << curr_y << ", height: " << frag_height << endl;
-            fastsend(PacketType::CONFIG, cv->connection, BinaryUtils::empty(), config);
+
+			fastsend(PacketType::CONFIG, cv->connection, BinaryUtils::empty(), config);
 
             // store internal record
             cv->y = curr_y;
@@ -269,7 +279,7 @@ namespace Router{
         registration();
 
         if(numRemotes() == 0){
-            cout << "No remote nodes were registered." << endl;   
+            cout << "No remote nodes were registered." << endl;  
             return false;
         } else if (client == NULL) {
             cout << "Client connection could not be initalized" << endl;
