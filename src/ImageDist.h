@@ -293,7 +293,6 @@ namespace DistributedRenderer {
 
 					// For each row in the rectangle
 					for (int row = 0; row < rect.height(); ++row) {
-						int h = buffer->height();
 						BYTE* dst = m_image->getScanLine(int(rect.height() - row - 1));
 						System::memcpy(dst, src + buffer->width() * (row + int(rect.y0())) * bytesPerPixel, rowStride);
 					}

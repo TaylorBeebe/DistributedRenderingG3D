@@ -69,9 +69,9 @@ namespace DistributedRenderer{
 
             switch(iter.type()){
                 case PacketType::UPDATE: // update data
-
+#if(DEBUG)
                     cout << "Received state update " << batch_id << " at " << current_time_ms() << endl;
-
+#endif
                     sync(&iter.binaryInput());
                     the_app->oneFrameAdHoc();
                     sendFrame(batch_id);
@@ -135,8 +135,10 @@ namespace DistributedRenderer{
 
         send(PacketType::FRAGMENT, *header, *bo);
 
+#if(DEBUG)
         cout << "Sent fragment of frame no. " << batch_id << " at " << current_time_ms() << endl;
- 
+#endif
+
         delete bo; 
         delete header;
     }
