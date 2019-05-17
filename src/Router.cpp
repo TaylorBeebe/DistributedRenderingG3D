@@ -55,7 +55,8 @@ namespace Router{
        
         current_batch = header->readUInt32();
 
-        cout << "Rerouting update packet " << current_batch << " at " << current_time_ms() << endl;
+		last_received_update = current_time_ms();
+        cout << "Rerouting update packet " << current_batch << " at " << last_received_update << endl;
 
         // reset batch variables
         //pieces = 0;
@@ -96,7 +97,8 @@ namespace Router{
 
 			fastsend(PacketType::FRAME, client, header, bo);
 
-            cout << "Sent frame no. " << batch_id << " to client at " << current_time_ms() << endl;
+			uint32 ms = current_time_ms();
+            cout << "Sent frame no. " << batch_id << " to client at " << ms << ", ms since update: " << ms - last_received_update << endl;
 
 			pieces = 0;
         } 

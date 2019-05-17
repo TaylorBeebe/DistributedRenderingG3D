@@ -93,6 +93,8 @@ namespace DistributedRenderer{
 				uint32 pieces;
 				Array<shared_ptr<ImageDist>> fragments;
 
+				uint32 last_received_update = 0;
+
 				// this registry will track remote connections, addressable with IP addresses
 				map<uint32, remote_connection_t*> remote_connection_registry;
 
