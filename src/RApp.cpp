@@ -301,12 +301,14 @@ namespace DistributedRenderer {
 		//RealTime deadline = someTimeStep + 100; // TODO: calculate something here with the given framerate and maybe borrow time from m_renderPeriod
 
 		// send the update
-		client->sendUpdate();
-
+		bool update_sent = client->sendUpdate();
 		bool frame_arrived = false;
-		while (!frame_arrived) frame_arrived = client->checkNetwork();
 
-		if (frame_arrived) {
+		if(update_sent)
+			while (!frame_arrived) frame_arrived = client->checkNetwork();
+
+		// if there was no update sent, just draw the previous frame
+		if (frame_arrived || !update_sent) {
 			// display network frame by writing net buffer into native window buffer
 			renderDevice->push2D(); {
 				Draw::rect2D(finalFrameBuffer()->texture(0)->rect2DBounds(), renderDevice, Color3::white(), finalFrameBuffer()->texture(0));
@@ -438,17 +440,12 @@ namespace DistributedRenderer {
 			screenCapture()->onAfterGraphics3D(rd);
 		}
 
-		// only draw 2D graphics can be drawn on the client
-		if (network_node->isTypeOf(NodeType::CLIENT)) {
+		rd->push2D(); {
+			onGraphics2D(rd, posed2D);
+		} rd->pop2D();
 
-			rd->push2D(); {
-				onGraphics2D(rd, posed2D);
-			} rd->pop2D();
-
-			if (notNull(screenCapture())) {
-				screenCapture()->onAfterGraphics2D(rd);
-			}
-
+		if (notNull(screenCapture())) {
+			screenCapture()->onAfterGraphics2D(rd);
 		}
 	}
 

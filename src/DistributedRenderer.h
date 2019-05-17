@@ -243,7 +243,7 @@ namespace DistributedRenderer {
         public:
             Client(RApp* app);
             
-            void sendUpdate();
+			bool sendUpdate();
 
             bool checkNetwork();
 

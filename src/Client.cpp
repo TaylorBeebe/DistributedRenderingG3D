@@ -89,7 +89,7 @@ namespace DistributedRenderer{
 	// send an update on the network with a batch ID
 	// the processed batch frame will need to return by the next deadline
 	// or else the client will use a low qual render instead
-    void Client::sendUpdate(){
+    bool Client::sendUpdate(){
 
         // serialize 
 		BinaryOutput* batch = BinaryUtils::create();
@@ -116,7 +116,9 @@ namespace DistributedRenderer{
             send(PacketType::UPDATE, *BinaryUtils::toBinaryOutput(current_batch_id++), *batch);
             last_update = System::time();
             cout << "Update " << current_batch_id << " sent at " << current_time_ms() << endl;
-        }
+			return true;
+		}
+		else return false;
 
     }
 }
