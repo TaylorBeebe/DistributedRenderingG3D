@@ -99,7 +99,8 @@ namespace DistributedRenderer{
 
     // @pre: transform packet with list of transforms of entities to update
     // @post: updates frame of corresponding entity with new position data
-    void Remote::sync(BinaryInput* update){
+	void Remote::sync(BinaryInput* update) {
+		
 #if (DEBUG)
         cout << "Syncing update..." << endl;
 #endif
@@ -128,6 +129,8 @@ namespace DistributedRenderer{
 
 		shared_ptr<PixelTransferBuffer> p = the_app->finalFrameBuffer()->texture(0)->toPixelTransferBuffer(ImageFormat::RGB8());
 		shared_ptr<ImageDist> frame = ImageDist::fromPixelTransferBuffer(p,bounds);
+
+		frame->save("test.png");
 
 		//shared_ptr<TextureDist> td = TextureDist::fromTexture(the_app->framebuffer()->texture(0));
 		//shared_ptr<ImageDist> frame = td->toImage5(bounds, ImageFormat::RGB8());

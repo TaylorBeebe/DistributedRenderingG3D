@@ -452,8 +452,10 @@ namespace DistributedRenderer {
 	void RApp::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
 
 		//Gate to only bind frame buffer if it is a remote node
-		if(network_node->isTypeOf(NodeType::REMOTE))
+		if (network_node->isTypeOf(NodeType::REMOTE)) {
 			rd->pushState(m_finalFrameBuffer);
+			rd->setClip2D(((Remote*)network_node)->getClip());
+		}
 
 	    if (!scene()) {
 	        if ((submitToDisplayMode() == SubmitToDisplayMode::MAXIMIZE_THROUGHPUT) && (! rd->swapBuffersAutomatically())) {
