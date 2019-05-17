@@ -12,6 +12,7 @@ namespace DistributedRenderer{
 
     Client::Client(RApp* app) : NetworkNode(NodeType::CLIENT, app, false) {
 		buffer = FramebufferDist::create(TextureDist::createEmpty("frame", the_app->renderDevice->width(), the_app->renderDevice->height()));
+		the_app->setFinalFrameBuffer(buffer);
 	}
 
     void Client::onConnect() {
@@ -69,8 +70,6 @@ namespace DistributedRenderer{
 					//buffer = FramebufferDist::create(TextureDist::fromImage("test", frame));
 
 					buffer->set(Framebuffer::COLOR0, TextureDist::fromImage("incomingFrame", frame));
-
-					the_app->setFinalFrameBuffer(buffer);
 
                     // convert to texture and toggle flag
                     cout << "Received frame at " << current_time_ms() << endl;
