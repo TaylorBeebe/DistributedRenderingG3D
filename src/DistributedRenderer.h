@@ -36,7 +36,7 @@ namespace DistributedRenderer {
 
         static const uint16 PORT = 8080; // node port
 
-        static NetAddress ROUTER_ADDR ("137.165.8.92", PORT);
+        static NetAddress ROUTER_ADDR ("137.165.209.29", PORT);
 
     }
 
