@@ -7,7 +7,12 @@ using namespace DistributedRenderer;
 
 namespace DistributedRenderer{
 
-    Client::Client(RApp* app) : NetworkNode(NodeType::CLIENT, app, false) {}
+	shared_ptr<ImageDist> frame;
+	shared_ptr<FramebufferDist> buffer;
+
+    Client::Client(RApp* app) : NetworkNode(NodeType::CLIENT, app, false) {
+		buffer = FramebufferDist::create(TextureDist::createEmpty("frame", the_app->renderDevice->width(), the_app->renderDevice->height()));
+	}
 
     void Client::onConnect() {
 		
@@ -48,11 +53,9 @@ namespace DistributedRenderer{
 
         try{
 
+
             BinaryInput& header = iter.headerBinaryInput();
             //uint32 batch_id = header.readUInt32();
-
-			shared_ptr<ImageDist> frame;
-			shared_ptr<FramebufferDist> buffer;
 
             switch(iter.type()){
                 case PacketType::FRAME:
@@ -62,7 +65,10 @@ namespace DistributedRenderer{
 				/*	if(current_batch_id %2 == 0)
 						frame->setAll(Color3::red());*/
 
-					buffer = FramebufferDist::create(TextureDist::fromImage("test", frame));
+
+					//buffer = FramebufferDist::create(TextureDist::fromImage("test", frame));
+
+					buffer->set(Framebuffer::COLOR0, TextureDist::fromImage("incomingFrame", frame));
 
 					the_app->setFinalFrameBuffer(buffer);
 
